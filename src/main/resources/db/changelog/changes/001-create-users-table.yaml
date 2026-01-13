@@ -30,3 +30,9 @@ databaseChangeLog:
                   defaultValue: "USER"
                   constraints:
                     nullable: false
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true

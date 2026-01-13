@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.frytes.cinemaPlus;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
