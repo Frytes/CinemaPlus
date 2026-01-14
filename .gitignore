@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local Development Scripts
+dev-env.sh
+start-dev.bat
+
+# Repomix (AI Tools)
+repomix-output.xml

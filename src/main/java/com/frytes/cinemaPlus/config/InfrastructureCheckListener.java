@@ -1,5 +1,7 @@
 package com.frytes.cinemaPlus.config;
 
+import com.frytes.cinemaPlus.users.entity.Role;
+import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -14,25 +16,14 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.concurrent.ExecutionException;
 
-//@Slf4j
-//@RequiredArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class InfrastructureCheckListener implements ApplicationListener<ApplicationReadyEvent> {
-
-    private static final Logger log = LoggerFactory.getLogger(InfrastructureCheckListener.class);
-    public InfrastructureCheckListener(DataSource dataSource,
-                                       RedisConnectionFactory redisConnectionFactory,
-                                       KafkaAdmin kafkaAdmin) {
-        this.dataSource = dataSource;
-        this.redisConnectionFactory = redisConnectionFactory;
-        this.kafkaAdmin = kafkaAdmin;
-    }
 
     private final DataSource dataSource;
     private final RedisConnectionFactory redisConnectionFactory;
     private final KafkaAdmin kafkaAdmin;
-
-
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -49,6 +40,7 @@ public class InfrastructureCheckListener implements ApplicationListener<Applicat
         System.out.println(String.format("Checking Kafka...       [%s]", getStatusSymbol(kafkaStatus)));
         System.out.println("============================================================");
         System.out.println("\n");
+
     }
 
     private String getStatusSymbol(boolean isUp) {
