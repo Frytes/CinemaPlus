@@ -1,68 +1,282 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --accent: #e50914;
+  --accent-hover: #f40612;
+  --input-bg: #333;
 }
 
 body {
+  background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)),
+              url('/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  color: var(--text-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.auth-container {
+  background-color: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: var(--input-bg);
+  color: white;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background 0.3s;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+  background-color: var(--accent-hover);
+}
+
+.toggle-link {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.toggle-link span {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.error-msg {
+  color: #ff4444;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid white;
+  padding: 8px 20px;
+  width: auto;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #e50914;
+}
+
+.logout:hover {
+  background: #e50914;
+  border-color: #e50914;
+}
+
+/* Карточка фильма */
+.movie-card {
+  background: #1e1e1e;
+  padding: 10px;
+  border-radius: 12px;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.buy-btn {
+  margin-top: 10px;
+  background-color: #333;
+}
+
+.movie-card:hover .buy-btn {
+  background-color: #e50914;
+}
+.profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Кругляшек аватарки */
+.avatar-circle {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #e50914, #b20710); /* Градиент для объема */
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.4rem;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.avatar-circle:hover {
+  border-color: white;
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.7); /* Неоновое свечение */
+  transform: scale(1.05);
+}
+
+/* Выпадающее меню */
+.profile-dropdown {
+  position: absolute; /* ПАРЯЩИЙ элемент */
+  top: 60px; /* Отступ сверху от аватарки */
+  right: 0; /* Прижат к правому краю */
+  width: 280px; /* Шире, чтобы влезли данные */
+
+  /* Glassmorphism (Стекло) */
+  background-color: rgba(30, 30, 30, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  padding: 15px;
+  z-index: 1000; /* Чтобы точно было поверх всего */
+
+  /* Анимация появления */
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Секция с данными юзера */
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888; /* Тусклый серый */
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: #fff; /* Яркий белый */
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Троеточие, если длинное */
+}
+
+/* Разделитель */
+.menu-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 10px 0;
+}
+
+/* Пункты меню */
+.menu-item {
+  padding: 10px 10px;
+  color: #ccc;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding-left: 15px; /* Эффект сдвига */
+}
+
+.logout-item {
+  color: #ff4444;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.logout-item:hover {
+  background-color: rgba(229, 9, 20, 0.15);
+  color: #ff4444;
 }

@@ -4,6 +4,7 @@ import com.frytes.cinemaPlus.users.dto.AuthResponse;
 import com.frytes.cinemaPlus.users.dto.LoginRequest;
 import com.frytes.cinemaPlus.users.dto.RegisterRequest;
 import com.frytes.cinemaPlus.users.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         String token = authService.register(request);
         return ResponseEntity.ok(new AuthResponse(token));
     }
