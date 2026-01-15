@@ -1,5 +1,6 @@
 package com.frytes.cinemaPlus.users.service;
 
+import com.frytes.cinemaPlus.users.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,7 +33,7 @@ public class JwtService {
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(((User) userDetails).getEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -40,8 +41,9 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        final String emailFromToken = extractUsername(token);
+        String userEmail = ((com.frytes.cinemaPlus.users.entity.User) userDetails).getEmail();
+        return (emailFromToken.equals(userEmail)) && !isTokenExpired(token);
     }
 
     public String extractUsername(String token) {

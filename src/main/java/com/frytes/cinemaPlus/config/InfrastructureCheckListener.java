@@ -35,9 +35,9 @@ public class InfrastructureCheckListener implements ApplicationListener<Applicat
         System.out.println("============================================================");
         System.out.println("🚀 CINEMA PLUS INFRASTRUCTURE STATUS");
         System.out.println("============================================================");
-        System.out.println(String.format("Checking Database...    [%s]", getStatusSymbol(dbStatus)));
-        System.out.println(String.format("Checking Redis Cache... [%s]", getStatusSymbol(redisStatus)));
-        System.out.println(String.format("Checking Kafka...       [%s]", getStatusSymbol(kafkaStatus)));
+        System.out.printf("Checking Database...    [%s]%n", getStatusSymbol(dbStatus));
+        System.out.printf("Checking Redis Cache... [%s]%n", getStatusSymbol(redisStatus));
+        System.out.printf("Checking Kafka...       [%s]%n", getStatusSymbol(kafkaStatus));
         System.out.println("============================================================");
         System.out.println("\n");
 

@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-movies-table
+      author: frytes
+      changes:
+        - createTable:
+            tableName: movies
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: duration_minutes
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: poster_url
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE movies ADD CONSTRAINT chk_movies_duration CHECK (duration_minutes BETWEEN 10 AND 300)
+
+        - sql:
+            sql: ALTER TABLE movies ADD CONSTRAINT chk_movies_description_length CHECK (description IS NULL OR LENGTH(description) >= 100)
