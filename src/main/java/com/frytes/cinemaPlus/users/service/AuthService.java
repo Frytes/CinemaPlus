@@ -18,17 +18,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
 
     public String register(RegisterRequest request) {
-        if (repository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("Пользователь с таким email уже существует");
         }
-        if (repository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsername(request.username())) {
             throw new UserAlreadyExistsException("Пользователь с таким именем уже существует");
         }
         User user = userMapper.toEntity(request);
@@ -36,7 +36,7 @@ public class AuthService {
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
-        repository.save(user);
+        userRepository.save(user);
         return  jwtService.generateToken(user);
     }
     public String login(LoginRequest request) {
@@ -47,7 +47,7 @@ public class AuthService {
                 )
         );
 
-        User user = repository.findByEmail(request.email())
+        User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
         return jwtService.generateToken(user);
     }

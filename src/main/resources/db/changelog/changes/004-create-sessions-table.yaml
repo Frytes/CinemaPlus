@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-enable-btree-gist
+      author: frytes
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS btree_gist;
+  - changeSet:
+      id: 004-create-sessions-table
+      author: frytes
+      changes:
+        - createTable:
+            tableName: sessions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: movie_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sessions_movie
+                    references: movies(id)
+              - column:
+                  name: hall_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sessions_hall
+                    references: halls(id)
+              - column:
+                  name: start_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: base_price
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: |
+              ALTER TABLE sessions 
+              ADD CONSTRAINT no_overlapping_sessions 
+              EXCLUDE USING GIST (
+                hall_id WITH =, 
+                tsrange(start_time, end_time) WITH &&
+              );
