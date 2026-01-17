@@ -20,4 +20,4 @@ jobs:
       - name: Build with Maven
         run: |
           chmod +x mvnw
-          ./mvnw clean package -DskipTests
+          ./mvnw clean package
