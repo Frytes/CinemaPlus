@@ -11,7 +11,45 @@
   --accent-hover: #f40612;
   --input-bg: #333;
 }
+html {
+  overflow-y: scroll;
+}
+/* Скроллбар для всего сайта */
+::-webkit-scrollbar {
+  width: 10px; /* Ширина */
+}
 
+/* Дорожка (фон) */
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+/* Ползунок */
+::-webkit-scrollbar-thumb {
+  background: #333; /* Темно-серый */
+  border-radius: 5px;
+}
+
+/* Ползунок при наведении */
+::-webkit-scrollbar-thumb:hover {
+  background: #e50914; /* Красный акцент */
+}
+.time-btn {
+  background: transparent;
+  border: 1px solid #555;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: auto;
+}
+
+.time-btn:hover {
+  border-color: #e50914;
+  background: rgba(229, 9, 20, 0.1);
+  transform: translateY(-2px);
+}
 body {
   background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)),
               url('/bg.jpg');
@@ -111,7 +149,7 @@ button:hover {
 #root {
   width: 100%;
   min-height: 100vh;
-  display: flex;
+
   justify-content: center;
   align-items: center;
 }
@@ -141,11 +179,28 @@ button:hover {
   border-radius: 12px;
   transition: transform 0.3s;
   cursor: pointer;
-}
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 
-.movie-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+
+
+.movie-card img {
+  width: 100%;
+  border-radius: 8px;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+}
+.movie-card h3 {
+  margin-top: 10px;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
 }
 
 .buy-btn {
@@ -166,19 +221,24 @@ button:hover {
 .avatar-circle {
   width: 45px;
   height: 45px;
+  min-width: 45px;
+  min-height: 45px;
   background: linear-gradient(135deg, #e50914, #b20710); /* Градиент для объема */
   color: white;
   border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 1.4rem;
-  cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  user-select: none;
+   /* Центрирование */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    padding-bottom: 2px;
+    font-weight: bold;
+    font-size: 1.4rem;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    user-select: none;
 }
 
 .avatar-circle:hover {
@@ -203,7 +263,7 @@ button:hover {
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.7);
   padding: 15px;
-  z-index: 1000; /* Чтобы точно было поверх всего */
+  z-index: 1000;
 
   /* Анимация появления */
   animation: fadeIn 0.2s ease-out;
@@ -279,4 +339,34 @@ button:hover {
 .logout-item:hover {
   background-color: rgba(229, 9, 20, 0.15);
   color: #ff4444;
+}
+/* Модальное окно (Lightbox) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Темный фон */
+  backdrop-filter: blur(5px); /* Размытие заднего плана */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Поверх всего */
+  cursor: pointer; /* Показать, что можно кликнуть для закрытия */
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  cursor: default; /* На картинке курсор обычный */
+  transform: scale(0.9);
+  animation: zoomIn 0.2s ease-out forwards;
+}
+
+@keyframes zoomIn {
+  to { transform: scale(1); }
 }

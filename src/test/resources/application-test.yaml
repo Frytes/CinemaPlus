@@ -1,0 +1,10 @@
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/CinemaPlus
+#    username: myuser
+#    password: secret
+#
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379

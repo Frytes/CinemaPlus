@@ -3,7 +3,7 @@ package com.frytes.cinemaPlus.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider; // Импортируй это
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -26,7 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/movies").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/movies/**").permitAll()
+                        .requestMatchers( "/api/sessions/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

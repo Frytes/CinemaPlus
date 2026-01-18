@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 
 public record MovieDto (
+        Long id,
         @NotNull(message = "Название не может быть пустым")
         String title,
 
@@ -20,5 +21,16 @@ public record MovieDto (
 
         @URL(message = "Некорректный URL адрес")
         @NotNull(message = "Url не может быть пустым")
-        String posterUrl
+        String posterUrl,
+
+        @Min(1900) @Max(2100)
+        Integer releaseYear,
+
+        @Min(0) @Max(10)
+        Double rating,
+
+        @Min(0) @Max(21)
+        Integer ageLimit,
+
+        String genre
 ) {}

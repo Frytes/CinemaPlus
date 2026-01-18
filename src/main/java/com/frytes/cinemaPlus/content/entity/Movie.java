@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
 @Table(name = "movies")
 @Getter
@@ -16,17 +15,29 @@ import lombok.Setter;
 public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @Column(nullable = false)
-    public String title;
+    private String title;
 
     @Column(columnDefinition = "TEXT")
-    public String description;
+    private String description;
 
-    @Column(nullable = false)
-    public Integer durationMinutes;
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
 
-    @Column(nullable = false)
-    public String posterUrl;
+    @Column(name = "poster_url", nullable = false)
+    private String posterUrl;
+
+    @Column(name = "release_year")
+    private Integer releaseYear;
+
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "age_limit")
+    private Integer ageLimit;
+
+    @Column(name = "genre")
+    private String genre;
 }

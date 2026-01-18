@@ -39,7 +39,11 @@ public class JwtService {
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
+    public String generateToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        return generateToken(claims, user);
+    }
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String emailFromToken = extractUsername(token);
         String userEmail = ((com.frytes.cinemaPlus.users.entity.User) userDetails).getEmail();

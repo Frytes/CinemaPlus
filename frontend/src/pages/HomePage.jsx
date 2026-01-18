@@ -5,11 +5,12 @@ import api from '../api/axiosConfig';
 const HomePage = () => {
     const navigate = useNavigate();
 
-    // --- Состояния (State) ---
+    // --- Состояния ---
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showMenu, setShowMenu] = useState(false); // Для менюшки
+    const [showMenu, setShowMenu] = useState(false);
     const [userEmail, setUserEmail] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false); // Флаг админа
 
     useEffect(() => {
         // 1. Читаем токен
@@ -18,8 +19,13 @@ const HomePage = () => {
             try {
                 const payload = token.split('.')[1];
                 const decoded = JSON.parse(atob(payload));
-                // Берем email из subject (sub)
+
                 setUserEmail(decoded.sub || 'User');
+
+                // Если в токене есть роль ADMIN - показываем кнопку
+                if (decoded.role === 'ADMIN') {
+                    setIsAdmin(true);
+                }
             } catch (e) {
                 console.error("Ошибка чтения токена", e);
             }
@@ -45,11 +51,14 @@ const HomePage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        setUserEmail('');
+        setIsAdmin(false);
+        setShowMenu(false);
         navigate('/login');
     };
 
     return (
-        <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#121212', color: 'white' }}>
+        <div style={{ width: '100%', minHeight: '100vh', color: 'white' }}>
 
             {/* --- ХЕДЕР --- */}
             <header style={{
@@ -61,54 +70,61 @@ const HomePage = () => {
                 borderBottom: '1px solid #333',
                 boxSizing: 'border-box'
             }}>
-                <h1 style={{ color: '#e50914', margin: 0, fontSize: '1.8rem', cursor: 'pointer' }}>CinemaPlus</h1>
+                <h1 style={{ color: '#e50914', margin: 0, fontSize: '1.8rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
+                    CinemaPlus
+                </h1>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button className="nav-btn">Мои билеты</button>
 
-                    {/* Аватарка с меню */}
-                    <div className="profile-wrapper">
-                        <div
-                            className="avatar-circle"
-                            onClick={() => setShowMenu(!showMenu)}
-                        >
-                            {avatarLetter}
+                      {isAdmin && (
+                                            <button
+                                                className="nav-btn"
+                                                style={{
+                                                    borderColor: '#e50914',
+                                                    color: '#e50914',
+                                                    fontWeight: 'bold'
+                                                }}
+                                                onClick={() => navigate('/admin')}
+                                            >
+                                                АДМИНКА
+                                            </button>
+                                        )}
+
+                    <button className="nav-btn" onClick={() => navigate('/halls')}>Залы</button>
+
+                    {userEmail && <button className="nav-btn">Мои билеты</button>}
+
+                    {!userEmail ? (
+                        <button className="nav-btn logout" onClick={() => navigate('/login')} style={{ fontWeight: 'bold' }}>
+                            Войти
+                        </button>
+                    ) : (
+                        <div className="profile-wrapper">
+                            <div className="avatar-circle" onClick={() => setShowMenu(!showMenu)}>{avatarLetter}</div>
+                            {showMenu && (
+                                <div className="profile-dropdown">
+                                    <div className="user-details">
+                                        <div className="detail-row"><span className="detail-label">Имя аккаунта</span><span className="detail-value">{usernameDisplay}</span></div>
+                                        <div className="detail-row"><span className="detail-label">Email</span><span className="detail-value">{userEmail}</span></div>
+                                    </div>
+                                    <div className="menu-divider"></div>
+                                    <div className="menu-item">Сменить имя</div>
+                                    <div className="menu-item">Сменить пароль</div>
+                                    <div className="menu-item">Сменить Email</div>
+                                    <div className="menu-divider"></div>
+                                    <div className="menu-item logout-item" onClick={handleLogout}>Выйти</div>
+                                </div>
+                            )}
                         </div>
-
-                        {/* Выпадашка */}
-                        {showMenu && (
-                            <div className="profile-dropdown">
-                                <div className="user-details">
-                                    <div className="detail-row">
-                                        <span className="detail-label">Имя аккаунта</span>
-                                        <span className="detail-value">{usernameDisplay}</span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Email</span>
-                                        <span className="detail-value" title={userEmail}>{userEmail}</span>
-                                    </div>
-                                </div>
-
-                                <div className="menu-divider"></div>
-
-                                <div className="menu-item">Сменить имя</div>
-                                <div className="menu-item">Сменить пароль</div>
-                                <div className="menu-item">Сменить Email</div>
-
-                                <div className="menu-divider"></div>
-
-                                <div className="menu-item logout-item" onClick={handleLogout}>
-                                    Выйти
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </header>
 
             {/* --- КОНТЕНТ --- */}
             <div style={{ padding: '100px 50px 50px' }}>
-                <h2 style={{ marginBottom: '30px', color: '#e50914' }}>Сейчас в кино</h2>
+                <h2 style={{ marginBottom: '30px', color: 'white', textAlign: 'center', fontSize: '2.5rem', textShadow: '0 0 10px #e50914, 0 0 20px #e50914' }}>
+                    Сейчас в кино
+                </h2>
 
                 {loading ? (
                     <div style={{textAlign: 'center', marginTop: '50px'}}>Загрузка...</div>
@@ -123,13 +139,37 @@ const HomePage = () => {
                                 <img
                                     src={movie.posterUrl || 'https://via.placeholder.com/300x450?text=No+Poster'}
                                     alt={movie.title}
-                                    style={{ width: '100%', borderRadius: '8px', objectFit: 'cover', aspectRatio: '2/3' }}
                                 />
                                 <h3 style={{ marginTop: '10px', fontSize: '1.1rem', marginBottom: '5px' }}>{movie.title}</h3>
-                                <p style={{ fontSize: '0.85rem', color: '#aaa', margin: '0 0 10px 0' }}>
-                                    {movie.durationMinutes} мин.
-                                </p>
-                                <button className="buy-btn">Купить билет</button>
+
+                                <div style={{ flexGrow: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#e5e5e5', marginBottom: '5px' }}>
+                                        <span style={{ color: '#ffd700', fontWeight: 'bold' }}>⭐ {movie.rating}</span>
+                                        <span>{movie.releaseYear}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#aaa' }}>
+                                        <span>{movie.durationMinutes} мин.</span>
+                                        <span style={{ border: '1px solid #555', padding: '0 4px', borderRadius: '4px' }}>
+                                            {movie.ageLimit}+
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {movie.genre}
+                                    </div>
+                                </div>
+
+                                <button
+                                    className="buy-btn"
+                                    onClick={() => {
+                                        if (!userEmail) {
+                                            navigate('/login');
+                                        } else {
+                                            navigate(`/movie/${movie.id}`);
+                                        }
+                                    }}
+                                >
+                                    Купить билет
+                                </button>
                             </div>
                         ))}
                     </div>

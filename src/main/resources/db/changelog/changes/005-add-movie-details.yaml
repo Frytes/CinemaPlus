@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-add-movie-details
+      author: frytes
+      changes:
+        - addColumn:
+            tableName: movies
+            columns:
+              - column:
+                  name: release_year
+                  type: INT
+              - column:
+                  name: rating
+                  type: DOUBLE
+              - column:
+                  name: age_limit
+                  type: INT
+              - column:
+                  name: genre
+                  type: VARCHAR(255)

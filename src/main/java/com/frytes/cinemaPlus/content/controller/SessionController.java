@@ -19,7 +19,10 @@ public class SessionController {
 
     public final SessionService sessionService;
 
-
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<List<SessionDto>> getSessionsByMovie(@PathVariable Long movieId) {
+        return ResponseEntity.ok(sessionService.getSessionsByMovie(movieId));
+    }
     @GetMapping
     public ResponseEntity<List<SessionDto>> getAllSessionsByDate(
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date

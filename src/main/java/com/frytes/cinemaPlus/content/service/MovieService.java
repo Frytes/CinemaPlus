@@ -1,5 +1,6 @@
 package com.frytes.cinemaPlus.content.service;
 
+import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.content.dto.MovieDto;
 import com.frytes.cinemaPlus.content.dto.MovieMapper;
 import com.frytes.cinemaPlus.content.entity.Movie;
@@ -25,6 +26,12 @@ public class MovieService {
         Movie movie = movieMapper.toEntity(dto);
         movieRepository.save(movie);
         log.info("Movie created with ID: {}", movie.getId());
+    }
+
+    public MovieDto getMovieById(Long id){
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Фильм не найден с id: " + id));
+        return movieMapper.toDto(movie);
     }
 
     @Transactional(readOnly = true)

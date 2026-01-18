@@ -9,4 +9,5 @@ import java.util.List;
 public interface SessionRepository extends JpaRepository<Session, Long> {
     boolean existsByHallIdAndStartTimeBeforeAndEndTimeAfter(Long id, LocalDateTime end, LocalDateTime start);
     List<Session> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
+    List<Session> findByMovieIdAndStartTimeAfter(Long movieId, LocalDateTime now);
 }

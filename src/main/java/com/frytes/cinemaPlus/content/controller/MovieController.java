@@ -16,6 +16,11 @@ public class MovieController {
 
     private final MovieService movieService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieDto> getMovie(@PathVariable Long id) {
+        return ResponseEntity.ok((movieService.getMovieById(id)));
+    }
+
     @GetMapping
     public ResponseEntity<List<MovieDto>> getAllMovies() {
         return ResponseEntity.ok(movieService.getAllMovies());

@@ -1,6 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
+import MoviePage from './pages/MoviePage';
+import HallsPage from './pages/HallsPage';
+import AdminPage from './pages/AdminPage';
+import AdminRoute from './components/AdminRoute';
 
 
 const PrivateRoute = ({ children }) => {
@@ -13,6 +17,13 @@ function App() {
     <Routes>
       <Route path="/login" element={<AuthPage />} />
       <Route path="/" element={<HomePage />} />
+      <Route path="/movie/:id" element={<MoviePage />} />
+      <Route path="/halls" element={<HallsPage />} />
+      <Route path="/admin" element={
+          <AdminRoute>
+              <AdminPage />
+          </AdminRoute>
+      } />
     </Routes>
   );
 }

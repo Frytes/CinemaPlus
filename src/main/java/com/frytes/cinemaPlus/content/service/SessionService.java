@@ -10,7 +10,6 @@ import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.repository.HallRepository;
 import com.frytes.cinemaPlus.repository.MovieRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
-import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -77,6 +76,13 @@ public class SessionService {
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
 
         return sessionRepository.findByStartTimeBetween(startOfDay, endOfDay)
+                .stream()
+                .map(sessionMapper::toDto)
+                .toList();
+    }
+
+    public List<SessionDto> getSessionsByMovie(Long movieId) {
+        return sessionRepository.findByMovieIdAndStartTimeAfter(movieId, LocalDateTime.now())
                 .stream()
                 .map(sessionMapper::toDto)
                 .toList();

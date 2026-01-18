@@ -43,62 +43,71 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="auth-container">
-            <h2>{isLogin ? 'Вход' : 'Регистрация'}</h2>
+            // ОБЕРТКА ДЛЯ ЦЕНТРИРОВАНИЯ
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh',
+                width: '100%'
+            }}>
+                <div className="auth-container">
+                    <h2>{isLogin ? 'Вход' : 'Регистрация'}</h2>
 
-            <form onSubmit={handleSubmit}>
-                {!isLogin && (
-                    <div className="form-group">
-                        <label>Имя пользователя</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required={!isLogin}
-                        />
+                    <form onSubmit={handleSubmit}>
+                        {!isLogin && (
+                            <div className="form-group">
+                                <label>Имя пользователя</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required={!isLogin}
+                                />
+                            </div>
+                        )}
+
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Пароль</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <button type="submit">
+                            {isLogin ? 'Войти' : 'Создать аккаунт'}
+                        </button>
+                    </form>
+
+                    {error && <div className="error-msg">{error}</div>}
+                    {message && <div style={{color: '#4caf50', marginTop: '10px'}}>{message}</div>}
+
+                    <div className="toggle-link">
+                        {isLogin ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
+                        <span onClick={() => {
+                            setIsLogin(!isLogin);
+                            setMessage('');
+                            setError('');
+                        }}>
+                            {isLogin ? 'Зарегистрироваться' : 'Войти'}
+                        </span>
                     </div>
-                )}
-
-                <div className="form-group">
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
                 </div>
-
-                <div className="form-group">
-                    <label>Пароль</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-
-                <button type="submit">
-                    {isLogin ? 'Войти' : 'Создать аккаунт'}
-                </button>
-            </form>
-
-            {error && <div className="error-msg">{error}</div>}
-            {message && <div style={{color: '#4caf50', marginTop: '10px'}}>{message}</div>}
-
-            <div className="toggle-link">
-                {isLogin ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-                <span onClick={() => {
-                    setIsLogin(!isLogin);
-                    setMessage('');
-                    setError('');
-                }}>
-                    {isLogin ? 'Зарегистрироваться' : 'Войти'}
-                </span>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
-export default AuthPage;
+    export default AuthPage;

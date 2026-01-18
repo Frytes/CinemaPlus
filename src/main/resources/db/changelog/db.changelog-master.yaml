@@ -7,3 +7,7 @@ databaseChangeLog:
       file: db/changelog/changes/003-create-halls-table.yaml
   - include:
       file: db/changelog/changes/004-create-sessions-table.yaml
+  - include:
+      file: db/changelog/changes/005-add-movie-details.yaml
+  - include:
+      file: db/changelog/changes/006-insert-demo-movies.yaml
