@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findAllBySessionId(Long sessionId);
+    List<Ticket> findAllBySessionIdAndSeatIdIn(Long sessionId, List<Long> seatIds);
 }
