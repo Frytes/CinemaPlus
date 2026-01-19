@@ -53,11 +53,12 @@ html {
 body {
   background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)),
               url('/bg.jpg');
-  background-size: cover;
-  background-position: center;
+  background-size: calc(100% + 35px) auto;
+  background-position: -35px top;
   background-repeat: no-repeat;
   background-attachment: fixed;
-
+   min-width: 100%;
+  overflow-x: hidden;
   color: var(--text-primary);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;

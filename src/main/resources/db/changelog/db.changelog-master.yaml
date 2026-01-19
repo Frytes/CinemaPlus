@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changes/005-add-movie-details.yaml
   - include:
       file: db/changelog/changes/006-insert-demo-movies.yaml
+  - include:
+      file: db/changelog/changes/007-create-orders-and-tickets-tables.yaml

@@ -1,7 +1,10 @@
 package com.frytes.cinemaPlus.content.service;
 
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
-import com.frytes.cinemaPlus.content.dto.*;
+import com.frytes.cinemaPlus.content.dto.HallDetailDto;
+import com.frytes.cinemaPlus.content.dto.HallMapper;
+import com.frytes.cinemaPlus.content.dto.HallRequest;
+import com.frytes.cinemaPlus.content.dto.HallSummaryDto;
 import com.frytes.cinemaPlus.content.entity.Hall;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
@@ -10,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

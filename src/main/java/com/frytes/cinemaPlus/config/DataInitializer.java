@@ -34,7 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     private static final BigDecimal BASE_PRICE_MORNING = BigDecimal.valueOf(250);
     private static final BigDecimal BASE_PRICE_EVENING = BigDecimal.valueOf(450);
 
-    // Наценка за зал
+
     private static final BigDecimal SURCHARGE_RED_HALL = BigDecimal.valueOf(100);
     private static final BigDecimal SURCHARGE_VIP_HALL = BigDecimal.valueOf(200);
     private static final BigDecimal SURCHARGE_GREEN_HALL = BigDecimal.ZERO;
@@ -73,10 +73,10 @@ public class DataInitializer implements CommandLineRunner {
         // --- 2. Красный зал (Большой с проходом) ---
         Hall red = new Hall();
         red.setName("Красный зал");
-        red.setWidth(50);
+        red.setWidth(44);
         red.setHeight(8);
 
-        int aisleGap = 3;
+        int aisleGap = 2;
 
         // Ряд 1: 11 + проход + 11
         addSplitRow(red, 0, 11, 11, SeatType.STANDARD, SeatType.STANDARD, aisleGap);
@@ -101,7 +101,7 @@ public class DataInitializer implements CommandLineRunner {
         // --- 3. Синий зал (Малый) ---
         Hall blue = new Hall();
         blue.setName("Синий зал");
-        blue.setWidth(30);
+        blue.setWidth(23);
         blue.setHeight(3);
 
         // Ряд 1: 23 синих

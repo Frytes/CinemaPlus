@@ -75,9 +75,9 @@ const HallsPage = () => {
                     <button
                         className="nav-btn"
                         style={{
-                            borderColor: '#e50914',       // Красная рамка
-                            background: 'rgba(229, 9, 20, 0.1)', // Легкий красный фон
-                            color: 'white'                // <--- ВАЖНО: Белый текст!
+                            borderColor: '#e50914',
+                            background: 'rgba(229, 9, 20, 0.1)',
+                            color: 'white'
                         }}
                     >
                         Залы
@@ -173,7 +173,7 @@ const HallsPage = () => {
                     ))}
                 </div>
 
-                {/* Кнопка "На главную" */}
+                {/*"На главную" */}
                 <div style={{ textAlign: 'center', marginTop: '60px' }}>
                     <button
                         onClick={() => navigate('/')}

@@ -5,6 +5,7 @@ import MoviePage from './pages/MoviePage';
 import HallsPage from './pages/HallsPage';
 import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/AdminRoute';
+import SessionPage from './pages/SessionPage';
 
 
 const PrivateRoute = ({ children }) => {
@@ -24,6 +25,7 @@ function App() {
               <AdminPage />
           </AdminRoute>
       } />
+      <Route path="/session/:id" element={<SessionPage />} />
     </Routes>
   );
 }

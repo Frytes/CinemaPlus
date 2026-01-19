@@ -1,0 +1,76 @@
+databaseChangeLog:
+  # 1. Таблица Заказов
+  - changeSet:
+      id: 007-create-orders-table
+      author: frytes
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_orders_user
+                    references: users(id)
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: "PENDING"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  # 2. Таблица Билетов
+  - changeSet:
+      id: 007-create-tickets-table
+      author: frytes
+      changes:
+        - createTable:
+            tableName: tickets
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: session_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tickets_session
+                    references: sessions(id)
+              - column:
+                  name: seat_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tickets_seat
+                    references: seats(id)
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tickets_order
+                    references: orders(id)
+
+        # 3. Уникальность (защита от овербукинга)
+        - addUniqueConstraint:
+            tableName: tickets
+            columnNames: session_id, seat_id
+            constraintName: uk_tickets_session_seat
