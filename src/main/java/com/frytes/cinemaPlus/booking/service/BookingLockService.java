@@ -1,6 +1,6 @@
 package com.frytes.cinemaPlus.booking.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -11,18 +11,24 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Service
-@RequiredArgsConstructor
 public class BookingLockService {
 
     private final StringRedisTemplate redisTemplate;
-
+    private final Duration lockDuration;
     private static final String LOCK_KEY_PATTERN = "booking:session:%d:seat:%d";
-    private static final Duration LOCK_DURATION = Duration.ofMinutes(10);
+
+    public BookingLockService(
+            StringRedisTemplate redisTemplate,
+            @Value("${cinema.lock-duration}") long durationMinutes
+    ) {
+        this.redisTemplate = redisTemplate;
+        this.lockDuration = Duration.ofMinutes(durationMinutes);
+    }
 
     public boolean acquireLock(Long sessionId, Long seatId, Long userId) {
         String key = String.format(LOCK_KEY_PATTERN, sessionId, seatId);
         String value = String.valueOf(userId);
-        Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, value, LOCK_DURATION);
+        Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, value, lockDuration);
         return Boolean.TRUE.equals(locked);
     }
 

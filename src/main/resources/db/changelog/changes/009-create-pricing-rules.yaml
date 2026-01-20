@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-create-pricing-rules
+      author: frytes
+      changes:
+        - createTable:
+            tableName: pricing_rules
+            columns:
+              - column:
+                  name: rule_name
+                  type: VARCHAR(50)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: amount
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+
+        # Заполним дефолтными правилами
+        - insert:
+            tableName: pricing_rules
+            columns:
+              - column: { name: rule_name, value: 'VIP_SURCHARGE' }
+              - column: { name: amount, valueNumeric: 200.00 }
+              - column: { name: is_active, valueBoolean: true }
+
+        - insert:
+            tableName: pricing_rules
+            columns:
+              - column: { name: rule_name, value: 'MORNING_DISCOUNT' }
+              - column: { name: amount, valueNumeric: 50.00 }
+              - column: { name: is_active, valueBoolean: true }

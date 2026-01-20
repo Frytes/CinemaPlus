@@ -9,8 +9,8 @@ import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
 import com.frytes.cinemaPlus.repository.HallRepository;
 import com.frytes.cinemaPlus.repository.MovieRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,22 +23,37 @@ import java.util.List;
 import java.util.Random;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
     private final HallRepository hallRepository;
     private final MovieRepository movieRepository;
     private final SessionRepository sessionRepository;
 
-    // --- КОНФИГУРАЦИЯ ЦЕН ---
-    private static final BigDecimal BASE_PRICE_MORNING = BigDecimal.valueOf(250);
-    private static final BigDecimal BASE_PRICE_EVENING = BigDecimal.valueOf(450);
+    private final BigDecimal basePriceMorning;
+    private final BigDecimal basePriceEvening;
+    private final BigDecimal surchargeRedHall;
+    private final BigDecimal surchargeBlueHall;
+    private final BigDecimal surchargeGreenHall;
 
-
-    private static final BigDecimal SURCHARGE_RED_HALL = BigDecimal.valueOf(100);
-    private static final BigDecimal SURCHARGE_VIP_HALL = BigDecimal.valueOf(200);
-    private static final BigDecimal SURCHARGE_GREEN_HALL = BigDecimal.ZERO;
-
+    public DataInitializer(
+            HallRepository hallRepository,
+            MovieRepository movieRepository,
+            SessionRepository sessionRepository,
+            @Value("${cinema.pricing.base-price-morning}") BigDecimal basePriceMorning,
+            @Value("${cinema.pricing.base-price-evening}") BigDecimal basePriceEvening,
+            @Value("${cinema.pricing.surcharge_red_hall}") BigDecimal surchargeRedHall,
+            @Value("${cinema.pricing.surcharge_blue_hall}") BigDecimal surchargeBlueHall,
+            @Value("${cinema.pricing.surcharge_green_hall}") BigDecimal surchargeGreenHall
+    ) {
+        this.hallRepository = hallRepository;
+        this.movieRepository = movieRepository;
+        this.sessionRepository = sessionRepository;
+        this.basePriceMorning = basePriceMorning;
+        this.basePriceEvening = basePriceEvening;
+        this.surchargeRedHall = surchargeRedHall;
+        this.surchargeBlueHall = surchargeBlueHall;
+        this.surchargeGreenHall = surchargeGreenHall;
+    }
     @Override
     @Transactional
     public void run(String... args) {
@@ -212,9 +227,10 @@ public class DataInitializer implements CommandLineRunner {
                     int totalDuration = movie.getDurationMinutes() + 30;
                     LocalDateTime endDateTime = startDateTime.plusMinutes(movie.getDurationMinutes());
 
-                    BigDecimal price = (time.getHour() < 17) ? BASE_PRICE_MORNING : BASE_PRICE_EVENING;
-                    if (hall.getName().contains("Красный зал")) price = price.add(SURCHARGE_RED_HALL);
-                    if (hall.getName().contains("Синий зал")) price = price.add(SURCHARGE_VIP_HALL);
+                    BigDecimal price = (time.getHour() < 14) ? basePriceMorning : basePriceEvening;
+                    if (hall.getName().contains("Зеленый зал")) price = price.add(surchargeGreenHall);
+                    if (hall.getName().contains("Красный зал")) price = price.add(surchargeRedHall);
+                    if (hall.getName().contains("Синий зал")) price = price.add(surchargeBlueHall);
 
                     Session session = new Session();
                     session.setMovie(movie);

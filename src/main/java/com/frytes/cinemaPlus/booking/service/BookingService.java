@@ -6,6 +6,7 @@ import com.frytes.cinemaPlus.booking.entity.Ticket;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
 import com.frytes.cinemaPlus.booking.repository.TicketRepository;
+import com.frytes.cinemaPlus.booking.service.pricing.PriceCalculator;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.common.exception.SeatAlreadySoldException;
 import com.frytes.cinemaPlus.common.exception.UserAlreadyExistsException;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,10 +38,10 @@ public class BookingService {
     private final TicketRepository ticketRepository;
     private final SeatRepository seatRepository;
     private final BookingLockService bookingLockService;
-
+    private final PriceCalculator priceCalculator;
 
     @Transactional
-    public void createBooking(BookingRequest request, User user) {
+    public Order createBooking(BookingRequest request, User user) {
         Session session = sessionRepository.findById(request.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Сеанс не найден"));
 
@@ -79,10 +81,13 @@ public class BookingService {
             throw e;
         }
 
+        BigDecimal totalPrice = priceCalculator.calculateTotal(session, seats);
+
         try {
             Order order = new Order();
             order.setUser(user);
             order.setStatus(OrderStatus.PENDING);
+            order.setTotalPrice(totalPrice);
             orderRepository.save(order);
 
             for (Seat seat : seats) {
@@ -93,7 +98,7 @@ public class BookingService {
                 ticketRepository.save(ticket);
             }
 
-
+            return order;
         } catch (RuntimeException e) {
 
             for (Long seatId : lockedSeats) {
@@ -101,6 +106,7 @@ public class BookingService {
             }
             throw e;
         }
+
     }
     @Transactional(readOnly = true)
     public List<SeatStatusDto> getSeatsForSession(Long sessionId) {

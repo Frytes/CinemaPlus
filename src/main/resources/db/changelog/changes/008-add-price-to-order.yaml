@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-add-price-to-order
+      author: frytes
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: total_price
+                  type: DECIMAL(10, 2)
+                  defaultValue: 0
+                  constraints:
+                    nullable: false

@@ -42,6 +42,18 @@ jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000
 
+#Настройки
 cinema:
-  default-ads-minutes: 15
-  default-cleanup-minutes: 20
+  default-ads-minutes: 15       # Дефолтные значения рекламы
+  default-cleanup-minutes: 20   # Дефолтные значения уборки
+  pricing:
+    base-price-morning: 250     # Базовая цена утром
+    base-price-evening: 450     # Базовая цена вечером
+    surcharge_red_hall: 100     # Надбавка за красный зал
+    surcharge_blue_hall: 100    # Надбавка за синий зал
+    surcharge_green_hall: 0     # Надбавка за зеленый зал
+    vip-surcharge: 200          # Добавочная цена за VIP место
+  lock-duration: 10             # Время блокировки заказа
+  payment:
+    delay-ms: 1000              # Длительность задержки банка при оплате заказа
+    fail-probability: 10        # Вероятность отказа в % (0-100)

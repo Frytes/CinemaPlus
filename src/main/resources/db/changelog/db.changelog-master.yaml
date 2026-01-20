@@ -13,3 +13,7 @@ databaseChangeLog:
       file: db/changelog/changes/006-insert-demo-movies.yaml
   - include:
       file: db/changelog/changes/007-create-orders-and-tickets-tables.yaml
+  - include:
+      file: db/changelog/changes/008-add-price-to-order.yaml
+  - include:
+      file: db/changelog/changes/009-create-pricing-rules.yaml
