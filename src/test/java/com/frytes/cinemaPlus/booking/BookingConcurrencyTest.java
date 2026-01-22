@@ -99,8 +99,6 @@ class BookingConcurrencyTest extends BaseIntegrationTest{
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
-                    System.out.println("Booking failed for user " + finalI + ": " + e.getMessage());
-                    e.printStackTrace();
                 } finally {
                     latch.countDown();
                 }
