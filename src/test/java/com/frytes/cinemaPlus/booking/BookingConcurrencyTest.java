@@ -46,7 +46,8 @@ class BookingConcurrencyTest extends BaseIntegrationTest {
         hall.addSeat(seat);
         hallRepository.save(hall);
 
-        Movie movie = new Movie(null, "Race Movie", "Desc", 120, "url", 2024, 9.0, 12, "Genre");
+        String longDescription = "Это очень длинное описание фильма, которое должно быть больше 100 символов, чтобы пройти проверку базы данных Postgres. Надеюсь, этого текста достаточно для теста.";
+        Movie movie = new Movie(null, "Race Movie", longDescription, 120, "url", 2024, 9.0, 12, "Genre");
         movieRepository.save(movie);
 
         Session session = new Session(null, movie, hall, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), BigDecimal.valueOf(100));
