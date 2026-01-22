@@ -2,17 +2,20 @@ package com.frytes.cinemaPlus.booking.service;
 
 import com.frytes.cinemaPlus.booking.dto.BookingRequest;
 import com.frytes.cinemaPlus.booking.entity.Order;
+import com.frytes.cinemaPlus.booking.entity.PricingRule;
 import com.frytes.cinemaPlus.booking.entity.Ticket;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
 import com.frytes.cinemaPlus.booking.repository.TicketRepository;
 import com.frytes.cinemaPlus.booking.service.pricing.PriceCalculator;
+import com.frytes.cinemaPlus.booking.service.pricing.PricingRulesService;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.common.exception.SeatAlreadySoldException;
 import com.frytes.cinemaPlus.common.exception.UserAlreadyExistsException;
 import com.frytes.cinemaPlus.content.dto.SeatStatusDto;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.Session;
+import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
 import com.frytes.cinemaPlus.repository.SeatRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
@@ -21,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -39,6 +40,7 @@ public class BookingService {
     private final SeatRepository seatRepository;
     private final BookingLockService bookingLockService;
     private final PriceCalculator priceCalculator;
+    private final PricingRulesService pricingRulesService;
 
     @Transactional
     public Order createBooking(BookingRequest request, User user) {
@@ -115,6 +117,12 @@ public class BookingService {
 
         List<Seat> allSeats = session.getHall().getSeats();
 
+        Map<String, PricingRule> rules = pricingRulesService.getAllRulesMap();
+        PricingRule vipRule = rules.get("VIP_SURCHARGE");
+        BigDecimal vipSurcharge = (vipRule != null && Boolean.TRUE.equals(vipRule.getIsActive()))
+                ? vipRule.getAmount()
+                : BigDecimal.ZERO;
+
         Set<Long> soldSeatIds = ticketRepository.findAllBySessionId(sessionId).stream()
                 .map(ticket -> ticket.getSeat().getId())
                 .collect(Collectors.toSet());
@@ -125,8 +133,12 @@ public class BookingService {
                 .map(seat -> {
                     boolean isSold = soldSeatIds.contains(seat.getId());
                     boolean isLocked = lockedSeatIds.contains(seat.getId());
-
                     boolean isBooked = isSold || isLocked;
+
+                    BigDecimal seatPrice = session.getBasePrice();
+                    if (seat.getType() == SeatType.VIP) {
+                        seatPrice = seatPrice.add(vipSurcharge);
+                    }
 
                     return new SeatStatusDto(
                             seat.getId(),
@@ -135,10 +147,46 @@ public class BookingService {
                             seat.getSeatNumber(),
                             seat.getType().name(),
                             isBooked,
-                            session.getBasePrice()
+                            seatPrice
                     );
                 })
                 .toList();
+    }
+    @Transactional
+    public void cancelBooking(Long orderId, User user) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Нельзя отменить чужой заказ");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Можно отменить только неоплаченный заказ");
+        }
+
+        for (Ticket ticket : order.getTickets()) {
+            bookingLockService.releaseLock(
+                    ticket.getSession().getId(),
+                    ticket.getSeat().getId(),
+                    user.getId()
+            );
+        }
+        List<Ticket> ticketsToDelete = new ArrayList<>(order.getTickets());
+        order.getTickets().clear();
+        ticketRepository.deleteAll(ticketsToDelete);
+        order.setStatus(OrderStatus.CANCELLED);
+
+        orderRepository.save(order);
+    }
+    @Transactional(readOnly = true)
+    public java.util.Optional<Order> findPendingBooking(Long sessionId, User user) {
+        return orderRepository.findTopByUserIdAndStatusOrderByCreatedAtDesc(user.getId(), OrderStatus.PENDING)
+                .filter(order -> {
+                    if (!order.getTickets().isEmpty())
+                        return order.getTickets().getFirst().getSession().getId().equals(sessionId);
+                    return false;
+                });
     }
 
 }

@@ -52,4 +52,21 @@ public class BookingController {
     public ResponseEntity<List<SeatStatusDto>> getSeatsForSession(@PathVariable Long sessionId) {
         return ResponseEntity.ok(bookingService.getSeatsForSession(sessionId));
     }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        bookingService.cancelBooking(orderId, user);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/session/{sessionId}/my-pending")
+    public ResponseEntity<BookingResponse> getMyPendingBooking(
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal User user
+    ) {
+        return bookingService.findPendingBooking(sessionId, user)
+                .map(bookingMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
 }

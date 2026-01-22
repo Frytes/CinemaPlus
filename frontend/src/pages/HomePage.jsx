@@ -1,126 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import Navbar from '../components/Navbar'; // <--- Импорт
 
 const HomePage = () => {
     const navigate = useNavigate();
-
-    // --- Состояния ---
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showMenu, setShowMenu] = useState(false);
-    const [userEmail, setUserEmail] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false); // Флаг админа
+    // userEmail, isAdmin, showMenu - УДАЛЯЕМ, они теперь в навбаре
 
     useEffect(() => {
-        // 1. Читаем токен
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const payload = token.split('.')[1];
-                const decoded = JSON.parse(atob(payload));
-
-                setUserEmail(decoded.sub || 'User');
-
-                // Если в токене есть роль ADMIN - показываем кнопку
-                if (decoded.role === 'ADMIN') {
-                    setIsAdmin(true);
-                }
-            } catch (e) {
-                console.error("Ошибка чтения токена", e);
-            }
-        }
-
-        // 2. Загружаем фильмы
         const fetchMovies = async () => {
             try {
                 const response = await api.get('/movies');
                 setMovies(response.data);
             } catch (error) {
-                console.error("Ошибка при загрузке фильмов:", error);
+                console.error("Ошибка:", error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchMovies();
     }, []);
 
-    const avatarLetter = userEmail ? userEmail.charAt(0).toUpperCase() : 'U';
-    const usernameDisplay = userEmail ? userEmail.split('@')[0] : 'Guest';
+    // handleLogout - УДАЛЯЕМ
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        setUserEmail('');
-        setIsAdmin(false);
-        setShowMenu(false);
-        navigate('/login');
+    // Проверка для кнопки "Купить билет"
+    const handleBuyClick = (movieId) => {
+        if (!localStorage.getItem('token')) {
+            navigate('/login');
+        } else {
+            navigate(`/movie/${movieId}`);
+        }
     };
 
     return (
         <div style={{ width: '100%', minHeight: '100vh', color: 'white' }}>
 
-            {/* --- ХЕДЕР --- */}
-            <header style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '15px 50px',
-                background: 'rgba(20, 20, 20, 0.9)',
-                backdropFilter: 'blur(10px)',
-                position: 'fixed', width: '100%', top: 0, zIndex: 100,
-                borderBottom: '1px solid #333',
-                boxSizing: 'border-box'
-            }}>
-                <h1 style={{ color: '#e50914', margin: 0, fontSize: '1.8rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    CinemaPlus
-                </h1>
+             <Navbar />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-
-                      {isAdmin && (
-                                            <button
-                                                className="nav-btn"
-                                                style={{
-                                                    borderColor: '#e50914',
-                                                    color: '#e50914',
-                                                    fontWeight: 'bold'
-                                                }}
-                                                onClick={() => navigate('/admin')}
-                                            >
-                                                АДМИНКА
-                                            </button>
-                                        )}
-
-                    <button className="nav-btn" onClick={() => navigate('/halls')}>Залы</button>
-
-                    {userEmail && <button className="nav-btn">Мои билеты</button>}
-
-                    {!userEmail ? (
-                        <button className="nav-btn logout" onClick={() => navigate('/login')} style={{ fontWeight: 'bold' }}>
-                            Войти
-                        </button>
-                    ) : (
-                        <div className="profile-wrapper">
-                            <div className="avatar-circle" onClick={() => setShowMenu(!showMenu)}>{avatarLetter}</div>
-                            {showMenu && (
-                                <div className="profile-dropdown">
-                                    <div className="user-details">
-                                        <div className="detail-row"><span className="detail-label">Имя аккаунта</span><span className="detail-value">{usernameDisplay}</span></div>
-                                        <div className="detail-row"><span className="detail-label">Email</span><span className="detail-value">{userEmail}</span></div>
-                                    </div>
-                                    <div className="menu-divider"></div>
-                                    <div className="menu-item">Сменить имя</div>
-                                    <div className="menu-item">Сменить пароль</div>
-                                    <div className="menu-item">Сменить Email</div>
-                                    <div className="menu-divider"></div>
-                                    <div className="menu-item logout-item" onClick={handleLogout}>Выйти</div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </header>
-
-            {/* --- КОНТЕНТ --- */}
+            {/* Контент с отступом под навбар */}
             <div style={{ padding: '100px 50px 50px' }}>
                 <h2 style={{ marginBottom: '30px', color: 'white', textAlign: 'center', fontSize: '2.5rem', textShadow: '0 0 10px #e50914, 0 0 20px #e50914' }}>
                     Сейчас в кино
@@ -135,9 +54,9 @@ const HomePage = () => {
                         gap: '30px'
                     }}>
                         {movies.map(movie => (
-                            <div key={movie.title} className="movie-card">
+                            <div key={movie.id} className="movie-card">
                                 <img
-                                    src={movie.posterUrl || 'https://via.placeholder.com/300x450?text=No+Poster'}
+                                    src={movie.posterUrl || 'https://via.placeholder.com/300x450'}
                                     alt={movie.title}
                                 />
                                 <h3 style={{ marginTop: '10px', fontSize: '1.1rem', marginBottom: '5px' }}>{movie.title}</h3>
@@ -160,23 +79,13 @@ const HomePage = () => {
 
                                 <button
                                     className="buy-btn"
-                                    onClick={() => {
-                                        if (!userEmail) {
-                                            navigate('/login');
-                                        } else {
-                                            navigate(`/movie/${movie.id}`);
-                                        }
-                                    }}
+                                    onClick={() => handleBuyClick(movie.id)}
                                 >
                                     Купить билет
                                 </button>
                             </div>
                         ))}
                     </div>
-                )}
-
-                {!loading && movies.length === 0 && (
-                    <div style={{textAlign: 'center', color: '#777'}}>Фильмов пока нет 😔</div>
                 )}
             </div>
         </div>

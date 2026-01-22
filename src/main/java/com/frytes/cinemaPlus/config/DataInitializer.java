@@ -72,7 +72,7 @@ public class DataInitializer implements CommandLineRunner {
         green.setHeight(5);
 
         // Ряд 1: 28
-        addSimpleRow(green, 0, 28);
+        addSimpleRow(green, 0, 27);
         // Ряд 2: 10 + 7 VIP + 10
         addMixedRow(green, 1, 10, 7, 10);
         // Ряд 3: 12 + 7 VIP + 12
@@ -120,7 +120,7 @@ public class DataInitializer implements CommandLineRunner {
         blue.setHeight(3);
 
         // Ряд 1: 23 синих
-        addSimpleRow(blue, 0, 23);
+        addSimpleRow(blue, 0, 22);
         // Ряд 2: 8 синих + 6 VIP + 8 синих
         addMixedRow(blue, 1, 8, 6, 8);
         // Ряд 3: 8 синих + 6 VIP + 8 синих
