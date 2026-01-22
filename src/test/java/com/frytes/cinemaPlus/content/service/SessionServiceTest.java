@@ -6,6 +6,7 @@ import com.frytes.cinemaPlus.content.entity.Hall;
 import com.frytes.cinemaPlus.content.entity.Movie;
 import com.frytes.cinemaPlus.repository.HallRepository;
 import com.frytes.cinemaPlus.repository.MovieRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,6 +27,7 @@ class SessionServiceTest extends BaseIntegrationTest {
     private HallRepository hallRepository;
 
     @Test
+    @DisplayName("Тест на выброс исключения при наложении сеансов")
     void shouldThrowException_WhenSessionsOverlap() {
         Movie movie = new Movie();
         movie.setTitle("Test Movie");
