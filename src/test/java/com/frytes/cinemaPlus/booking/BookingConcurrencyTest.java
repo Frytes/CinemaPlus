@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.math.BigDecimal;
@@ -34,10 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 @DisplayName("🔥 Тест на конкурентное бронирование")
-class BookingConcurrencyTest {
+class BookingConcurrencyTest extends BaseIntegrationTest{
 
     @Autowired private BookingService bookingService;
     @Autowired private UserRepository userRepository;
@@ -60,6 +61,7 @@ class BookingConcurrencyTest {
     }
     @Test
     @DisplayName("⚔️ Тест на избежание двойного бронирования (Race Condition)")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldPreventDoubleBooking_WhenMultipleUsersTryToBuySameSeat() throws InterruptedException {
         Hall hall = new Hall(null, "Race Hall", 10, 10, new ArrayList<>());
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
