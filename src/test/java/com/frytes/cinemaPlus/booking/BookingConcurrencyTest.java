@@ -10,13 +10,18 @@ import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
 import com.frytes.cinemaPlus.repository.HallRepository;
 import com.frytes.cinemaPlus.repository.MovieRepository;
+import com.frytes.cinemaPlus.repository.SeatRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.Role;
 import com.frytes.cinemaPlus.users.entity.User;
 import com.frytes.cinemaPlus.users.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,15 +34,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest
+@Import(TestcontainersConfiguration.class)
 @DisplayName("🔥 Тест на конкурентное бронирование")
-class BookingConcurrencyTest extends BaseIntegrationTest {
+class BookingConcurrencyTest {
 
     @Autowired private BookingService bookingService;
     @Autowired private UserRepository userRepository;
     @Autowired private HallRepository hallRepository;
     @Autowired private MovieRepository movieRepository;
     @Autowired private SessionRepository sessionRepository;
+    @Autowired private SeatRepository seatRepository;
+    @Autowired private com.frytes.cinemaPlus.booking.repository.TicketRepository ticketRepository;
+    @Autowired private com.frytes.cinemaPlus.booking.repository.OrderRepository orderRepository;
 
+    @AfterEach
+    void tearDown() {
+        ticketRepository.deleteAll();
+        orderRepository.deleteAll();
+        sessionRepository.deleteAll();
+        seatRepository.deleteAll();
+        hallRepository.deleteAll();
+        movieRepository.deleteAll();
+        userRepository.deleteAll();
+    }
     @Test
     @DisplayName("⚔️ Тест на избежание двойного бронирования (Race Condition)")
     void shouldPreventDoubleBooking_WhenMultipleUsersTryToBuySameSeat() throws InterruptedException {
