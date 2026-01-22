@@ -1,8 +1,10 @@
 package com.frytes.cinemaPlus.booking.service;
 
 import com.frytes.cinemaPlus.booking.entity.Order;
+import com.frytes.cinemaPlus.booking.entity.Ticket;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
+import com.frytes.cinemaPlus.booking.repository.TicketRepository;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -10,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -17,7 +21,11 @@ import java.util.Random;
 public class PaymentService {
 
     private final OrderRepository orderRepository;
+    private final BookingLockService bookingLockService;
+    private final TicketRepository ticketRepository;
+
     private final Random random = new Random();
+
 
     @Value("${cinema.payment.delay-ms:1000}")
     private int delayMs;
@@ -51,8 +59,19 @@ public class PaymentService {
             orderRepository.save(order);
             return true;
         } else {
+            for (Ticket ticket : order.getTickets()) {
+                bookingLockService.releaseLock(
+                        ticket.getSession().getId(),
+                        ticket.getSeat().getId()
+                );
+            }
+            List<Ticket> ticketsToDelete = new ArrayList<>(order.getTickets());
+            order.getTickets().clear();
+            ticketRepository.deleteAll(ticketsToDelete);
+
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
+
             return false;
         }
     }

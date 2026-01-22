@@ -1,9 +1,6 @@
 package com.frytes.cinemaPlus.booking.controller;
 
-import com.frytes.cinemaPlus.booking.dto.BookingMapper;
-import com.frytes.cinemaPlus.booking.dto.BookingRequest;
-import com.frytes.cinemaPlus.booking.dto.BookingResponse;
-import com.frytes.cinemaPlus.booking.dto.PaymentResponse;
+import com.frytes.cinemaPlus.booking.dto.*;
 import com.frytes.cinemaPlus.booking.entity.Order;
 import com.frytes.cinemaPlus.booking.service.BookingService;
 import com.frytes.cinemaPlus.booking.service.PaymentService;
@@ -27,36 +24,9 @@ public class BookingController {
     public final PaymentService paymentService;
     private final BookingMapper bookingMapper;
 
-
-    @PostMapping
-    public ResponseEntity<BookingResponse> createBooking(
-            @Valid @RequestBody BookingRequest request,
-            @AuthenticationPrincipal User user
-    ) {
-        Order order = bookingService.createBooking(request, user);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bookingMapper.toResponse(order));
-    }
-
-    @PostMapping("/{orderId}/pay")
-    public ResponseEntity<PaymentResponse> payOrder(@PathVariable Long orderId) {
-        boolean success = paymentService.processPayment(orderId);
-        if (success) {
-            return ResponseEntity.ok(new PaymentResponse(orderId,"PAID", "Оплата прошла успешна"));
-        } else {
-            return ResponseEntity.badRequest().body(new PaymentResponse(orderId,"FAILED", "Оплата отклонена банком"));
-        }
-    }
-
     @GetMapping("/session/{sessionId}/seats")
     public ResponseEntity<List<SeatStatusDto>> getSeatsForSession(@PathVariable Long sessionId) {
         return ResponseEntity.ok(bookingService.getSeatsForSession(sessionId));
-    }
-
-    @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
-        bookingService.cancelBooking(orderId, user);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/session/{sessionId}/my-pending")
@@ -68,5 +38,39 @@ public class BookingController {
                 .map(bookingMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/my-tickets")
+    public ResponseEntity<List<OrderHistoryDto>> getMyHistory(@AuthenticationPrincipal User user) {
+        List<OrderHistoryDto> history = bookingService.getMyOrders(user).stream()
+                .map(bookingMapper::toHistoryDto)
+                .toList();
+        return ResponseEntity.ok(history);
+    }
+
+    @PostMapping
+    public ResponseEntity<BookingResponse> createBooking(
+            @Valid @RequestBody BookingRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        Order order = bookingService.createBooking(request, user);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(bookingMapper.toResponse(order));
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+        bookingService.cancelBooking(orderId, user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{orderId}/pay")
+    public ResponseEntity<PaymentResponse> payOrder(@PathVariable Long orderId) {
+        boolean success = paymentService.processPayment(orderId);
+        if (success) {
+            return ResponseEntity.ok(new PaymentResponse(orderId,"PAID", "Оплата прошла успешна"));
+        } else {
+            return ResponseEntity.badRequest().body(new PaymentResponse(orderId,"FAILED", "Оплата отклонена банком"));
+        }
     }
 }

@@ -34,13 +34,10 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    // --- УМНАЯ НАВИГАЦИЯ ---
-    const handleBack = () => {
-        // Если мы на странице СЕАНСА -> идем к Фильму (на шаг назад)
+      const handleBack = () => {
         if (location.pathname.startsWith('/session')) {
             navigate(-1);
         }
-        // Во всех остальных случаях (Залы, Фильм, Админка) -> идем Домой
         else {
             navigate('/');
         }
@@ -50,7 +47,7 @@ const Navbar = () => {
     const usernameDisplay = userEmail ? userEmail.split('@')[0] : 'Guest';
     const isHomePage = location.pathname === '/';
 
-    // Функция для активного стиля
+
     const getNavStyle = (path) => {
         if (location.pathname === path) {
             return {
@@ -84,7 +81,7 @@ const Navbar = () => {
                 {!isHomePage && (
                     <button
                         className="nav-btn"
-                        onClick={handleBack} // <--- ИСПОЛЬЗУЕМ НОВУЮ ФУНКЦИЮ
+                        onClick={handleBack}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
                             fontWeight: 'bold', cursor: 'pointer'

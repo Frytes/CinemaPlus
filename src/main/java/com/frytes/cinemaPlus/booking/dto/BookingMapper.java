@@ -25,4 +25,17 @@ public abstract class BookingMapper {
                 .map(ticket -> ticket.getSeat().getId())
                 .toList();
     }
+    @Mapping(target = "orderId", source = "id")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "tickets", source = "tickets")
+    public abstract OrderHistoryDto toHistoryDto(Order order);
+
+    @Mapping(target = "ticketId", source = "id")
+    @Mapping(target = "movieTitle", source = "session.movie.title")
+    @Mapping(target = "hallName", source = "session.hall.name")
+    @Mapping(target = "startTime", source = "session.startTime")
+    @Mapping(target = "seatNumber", source = "seat.seatNumber")
+    @Mapping(target = "rowIndex", source = "seat.rowIndex")
+    @Mapping(target = "sessionId", source = "session.id")
+    public abstract OrderHistoryDto.TicketDto toTicketDto(Ticket ticket);
 }

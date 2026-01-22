@@ -4,11 +4,11 @@ import api from '../api/axiosConfig';
 
 const AuthPage = () => {
     const navigate = useNavigate();
-    const [isLogin, setIsLogin] = useState(true); // true = Вход, false = Регистрация
+    const [isLogin, setIsLogin] = useState(true);
 
     // Поля формы
     const [email, setEmail] = useState('');
-    const [username, setUsername] = useState(''); // Только для регистрации
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const [message, setMessage] = useState('');

@@ -25,13 +25,16 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public String register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
+        String normalizedEmail = request.email().toLowerCase();
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new UserAlreadyExistsException("Пользователь с таким email уже существует");
         }
-        if (userRepository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsername(normalizedEmail)) {
             throw new UserAlreadyExistsException("Пользователь с таким именем уже существует");
         }
         User user = userMapper.toEntity(request);
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(request.password()));
         if (user.getRole() == null) {
             user.setRole(Role.USER);
@@ -40,14 +43,15 @@ public class AuthService {
         return  jwtService.generateToken(user);
     }
     public String login(LoginRequest request) {
+        String normalizedEmail = request.email().toLowerCase();
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.email(),
+                        normalizedEmail,
                         request.password()
                 )
         );
 
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
         return jwtService.generateToken(user);
     }

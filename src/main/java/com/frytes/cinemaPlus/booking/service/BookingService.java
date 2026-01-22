@@ -181,12 +181,20 @@ public class BookingService {
     }
     @Transactional(readOnly = true)
     public java.util.Optional<Order> findPendingBooking(Long sessionId, User user) {
+        if (user == null) {
+            return Optional.empty();
+        }
         return orderRepository.findTopByUserIdAndStatusOrderByCreatedAtDesc(user.getId(), OrderStatus.PENDING)
                 .filter(order -> {
                     if (!order.getTickets().isEmpty())
                         return order.getTickets().getFirst().getSession().getId().equals(sessionId);
                     return false;
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> getMyOrders(User user) {
+        return orderRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
 }

@@ -62,4 +62,9 @@ public class BookingLockService {
         }
         return lockedSeatIds;
     }
+
+    public void releaseLock(Long sessionId, Long seatId) {
+        String key = String.format(LOCK_KEY_PATTERN, sessionId, seatId);
+        redisTemplate.delete(key);
+    }
 }
