@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +66,7 @@ class FullBookingCycleIntegrationTest extends BaseIntegrationTest {
         Movie movie = new Movie(null, "E2E Movie", longDescription, 120, "https://example.com/poster.jpg", 2024, 9.0, 12, "Genre");
         movieRepository.save(movie);
 
-        Hall hall = new Hall(null, "E2E Hall", 5, 5, null);
+        Hall hall = new Hall(null, "E2E Hall", 5, 5, new ArrayList<>());
 
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
         hall.addSeat(seat);

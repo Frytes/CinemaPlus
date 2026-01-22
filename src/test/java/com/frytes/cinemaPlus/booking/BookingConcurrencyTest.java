@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +41,7 @@ class BookingConcurrencyTest extends BaseIntegrationTest {
     @Test
     @DisplayName("⚔️ Тест на избежание двойного бронирования (Race Condition)")
     void shouldPreventDoubleBooking_WhenMultipleUsersTryToBuySameSeat() throws InterruptedException {
-        Hall hall = new Hall(null, "Race Hall", 10, 10, null);
+        Hall hall = new Hall(null, "Race Hall", 10, 10, new ArrayList<>());
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
         hall.addSeat(seat);
         hallRepository.save(hall);
