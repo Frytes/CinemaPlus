@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changes/008-add-price-to-order.yaml
   - include:
       file: db/changelog/changes/009-create-pricing-rules.yaml
+  - include:
+      file: db/changelog/changes/010-create-audit-table.yaml

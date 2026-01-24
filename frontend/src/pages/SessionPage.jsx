@@ -254,18 +254,88 @@ const SessionPage = () => {
             {/* TOOLTIP */}
             {tooltip && (
                 <div style={{
-                    position: 'fixed', top: tooltip.y, left: tooltip.x,
-                    transform: 'translate(-50%, -100%)', background: 'rgba(0, 0, 0, 0.95)',
-                    border: `1px solid ${tooltip.seat.type === 'VIP' ? '#ffd700' : '#e50914'}`,
-                    padding: '8px 12px', borderRadius: '6px', pointerEvents: 'none', zIndex: 1000,
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', textAlign: 'center'
+                    position: 'fixed',
+                    top: tooltip.y,
+                    left: tooltip.x,
+                    transform: 'translate(-50%, calc(-100% - 8px))',
+                    background: 'rgba(20, 20, 20, 0.98)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 0, 0, 0.4)',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    pointerEvents: 'none',
+                    zIndex: 1000,
+                    boxShadow: '0 8px 25px rgba(255, 0, 0, 0.2)',
+                    minWidth: '160px',
+                    animation: 'fadeIn 0.15s ease-out'
                 }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                        Ряд {tooltip.seat.rowIndex + 1}, Место {tooltip.seat.seatNumber}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '8px'
+                    }}>
+                        <div style={{
+                            fontSize: '0.8rem',
+                            color: '#ff6b6b',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px'
+                        }}>
+                            Ряд {tooltip.seat.rowIndex + 1} • Место {tooltip.seat.seatNumber}
+                        </div>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: tooltip.seat.type === 'VIP' ? '#ffd700' : '#ccc', marginTop: '2px' }}>
-                        {tooltip.seat.type === 'VIP' ? '💎 VIP' : 'Стандарт'} • {tooltip.seat.price} ₽
+
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingTop: '8px',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <span style={{
+                            fontSize: '0.90rem',
+                            color: tooltip.seat.type === 'VIP' ? '#ffd700' : '#cccccc',
+                            fontWeight: '600',
+                            paddingRight: '15px'
+                        }}>
+                            {tooltip.seat.type === 'VIP' ? 'VIP' : 'Стандарт'}
+                        </span>
+                        <span style={{
+                            fontSize: '1.1rem',
+                            fontWeight: '900',
+                            color: '#ffffff',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {tooltip.seat.price} ₽
+                        </span>
                     </div>
+
+                    {/* Стрелка вниз */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '-6px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '0',
+                        height: '0',
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderTop: '6px solid rgba(255, 0, 0, 0.4)'
+                    }}></div>
+
+                    <style>{`
+                        @keyframes fadeIn {
+                            from {
+                                opacity: 0;
+                                transform: translate(-50%, calc(-100% - 15px));
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translate(-50%, calc(-100% - 8px));
+                            }
+                        }
+                    `}</style>
                 </div>
             )}
 
@@ -363,7 +433,7 @@ const SessionPage = () => {
                     zIndex: 200,
                     animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
-                    {/* ИСПРАВЛЕНИЕ: Увеличил maxWidth с 50% до 60% и добавил flex-wrap */}
+
                     <div style={{
                         display: 'flex',
                         gap: '15px',
@@ -371,7 +441,7 @@ const SessionPage = () => {
                         maxWidth: '60%',
                         overflowX: 'auto',
                         paddingBottom: '5px',
-                        flexWrap: 'wrap'  /* Добавил перенос на новую строку если не помещается */
+                        flexWrap: 'wrap'
                     }}>
 
                         {/* ТАЙМЕР */}
@@ -394,9 +464,9 @@ const SessionPage = () => {
                         <div style={{
                             display: 'flex',
                             gap: '8px',
-                            flexWrap: 'wrap',  /* Перенос билетов на новую строку */
-                            maxHeight: '60px', /* Ограничение высоты для 2 строк */
-                            overflowY: 'auto'  /* Прокрутка по вертикали если много билетов */
+                            flexWrap: 'wrap',
+                            maxHeight: '60px',
+                            overflowY: 'auto'
                         }}>
                             {seats.filter(s => selectedSeatIds.includes(s.id)).map(s => (
                                 <span key={s.id} style={{
@@ -405,7 +475,7 @@ const SessionPage = () => {
                                     border: s.type === 'VIP' ? '1px solid #ffd700' : '1px solid #444',
                                     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
                                     whiteSpace: 'nowrap',
-                                    flexShrink: 0  /* Чтобы элементы не сжимались */
+                                    flexShrink: 0
                                 }}>
                                     <span style={{color: '#aaa', fontSize: '0.8rem'}}>Ряд</span> {s.rowIndex + 1} <span style={{color: '#555'}}>|</span> <span style={{color: '#aaa', fontSize: '0.8rem'}}>Место</span> {s.seatNumber}
                                 </span>

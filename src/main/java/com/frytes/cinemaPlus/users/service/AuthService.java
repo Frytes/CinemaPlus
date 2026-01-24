@@ -7,8 +7,10 @@ import com.frytes.cinemaPlus.users.dto.RegisterRequest;
 import com.frytes.cinemaPlus.users.dto.UserMapper;
 import com.frytes.cinemaPlus.users.entity.Role;
 import com.frytes.cinemaPlus.users.entity.User;
+import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import com.frytes.cinemaPlus.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +25,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public String register(RegisterRequest request) {
         String normalizedEmail = request.email().toLowerCase();
@@ -40,6 +43,13 @@ public class AuthService {
             user.setRole(Role.USER);
         }
         userRepository.save(user);
+
+        UserRegisteredEvent event = new UserRegisteredEvent(
+                user.getId(),
+                user.getEmail(),
+                user.getUsername()
+        );
+        kafkaTemplate.send("user-events-topic", user.getEmail(), event);
         return  jwtService.generateToken(user);
     }
     public String login(LoginRequest request) {

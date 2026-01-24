@@ -89,3 +89,11 @@ services:
     depends_on:
       - prometheus
       - loki
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: cinema_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    logging:
+      driver: "none"

@@ -21,13 +21,37 @@ spring:
 
 
   kafka:
-    bootstrap-servers: localhost:9092
-    admin:
-      properties:
-        request.timeout.ms: 5000
+      bootstrap-servers: localhost:9092
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      consumer:
+        group-id: notification-group
+        auto-offset-reset: latest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          spring.json.trusted.packages: "*"
+      admin:
+        properties:
+          request.timeout.ms: 5000
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+    protocol: smtp
+    test-connection: true
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 logging:
   level:
