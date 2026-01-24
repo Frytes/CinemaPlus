@@ -1,5 +1,6 @@
 package com.frytes.cinemaPlus.notification.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frytes.cinemaPlus.booking.event.BookingPaidEvent;
 import com.frytes.cinemaPlus.common.service.QrCodeService;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
@@ -21,10 +22,13 @@ public class NotificationService {
     private final EmailService emailService;
     private final HtmlTemplateService templateService;
     private final QrCodeService qrCodeService;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "booking-events-topic", groupId = "notification-group")
-    public void handleBookingPaid(BookingPaidEvent event) {
-        log.info("📩 Генерация письма для заказа #{}", event.orderId());
+    public void handleBookingPaid(String message) {
+        try{
+            BookingPaidEvent event = objectMapper.readValue(message, BookingPaidEvent.class);
+            log.info("📩 Генерация письма для заказа #{}", event.orderId());
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -56,7 +60,11 @@ public class NotificationService {
                 "Ваш билет в CinemaPlus! 🍿",
                 html
         );
+        } catch (Exception e) {
+            log.error("❌ Ошибка обработки сообщения для отправки сообщения на почту: {}", e.getMessage());
+        }
     }
+
 
     @KafkaListener(topics = "user-events-topic", groupId = "notification-group")
     public void handleUserRegistered(UserRegisteredEvent event) {

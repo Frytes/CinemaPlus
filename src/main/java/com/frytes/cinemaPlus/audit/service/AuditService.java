@@ -18,10 +18,10 @@ public class AuditService {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "booking-events-topic", groupId = "audit-group")
-    public void handleBookingPaid(BookingPaidEvent event) {
-        log.info("🕵️ [AUDIT] Записываем событие в историю: Order ID {}", event.orderId());
-
+    public void handleBookingPaid(String message) {
         try {
+            BookingPaidEvent event = objectMapper.readValue(message, BookingPaidEvent.class);
+            log.info("🕵️ [AUDIT] Записываем событие в историю: Order ID {}", event.orderId());
             AuditLog auditLog = new AuditLog();
             auditLog.setEventType("BOOKING_PAID");
 

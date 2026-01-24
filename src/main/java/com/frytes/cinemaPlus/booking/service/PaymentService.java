@@ -1,11 +1,15 @@
 package com.frytes.cinemaPlus.booking.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frytes.cinemaPlus.booking.entity.Order;
+import com.frytes.cinemaPlus.booking.entity.OutboxEvent;
 import com.frytes.cinemaPlus.booking.entity.Ticket;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
+import com.frytes.cinemaPlus.booking.entity.enumps.OutboxStatus;
 import com.frytes.cinemaPlus.booking.event.BookingPaidEvent;
 import com.frytes.cinemaPlus.booking.event.TicketDetail;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
+import com.frytes.cinemaPlus.booking.repository.OutboxRepository;
 import com.frytes.cinemaPlus.booking.repository.TicketRepository;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.content.entity.Session;
@@ -14,7 +18,6 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,7 +31,9 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final BookingLockService bookingLockService;
     private final TicketRepository ticketRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
+
 
     private final Random random = new Random();
 
@@ -50,9 +55,9 @@ public class PaymentService {
 
         return finalizeOrder(orderId, success);
     }
-
+    @SneakyThrows
     @Transactional
-    protected boolean finalizeOrder(Long orderId, boolean paymentSuccess) {
+    protected boolean finalizeOrder(Long orderId, boolean paymentSuccess)  {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
 
@@ -97,8 +102,13 @@ public class PaymentService {
                     order.getTotalPrice(),
                     LocalDateTime.now()
             );
-
-            kafkaTemplate.send("booking-events-topic", String.valueOf(orderId), event);
+            String json = objectMapper.writeValueAsString(event);
+            OutboxEvent outboxEvent = OutboxEvent.builder()
+                    .topic("booking-events-topic")
+                    .payload(json)
+                    .status(OutboxStatus.NEW)
+                    .build();
+            outboxRepository.save(outboxEvent);
 
             return true;
         } else {

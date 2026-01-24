@@ -24,12 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 
 @Service
@@ -212,7 +209,7 @@ public class BookingService {
             );
         }
 
-        Ticket firstTicket = order.getTickets().get(0);
+        Ticket firstTicket = order.getTickets().getFirst();
         Session session = firstTicket.getSession();
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");

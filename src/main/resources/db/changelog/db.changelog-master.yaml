@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/changes/009-create-pricing-rules.yaml
   - include:
       file: db/changelog/changes/010-create-audit-table.yaml
+  - include:
+      file: db/changelog/changes/011-create-outbox-events-table.yaml
