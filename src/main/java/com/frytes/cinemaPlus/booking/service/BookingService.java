@@ -24,10 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+import static java.util.stream.Collectors.toList;
 
 
 @Service
@@ -197,4 +199,43 @@ public class BookingService {
         return orderRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
+    public Map<String, Object> getOrderQrData(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+
+        if (order.getTickets() == null || order.getTickets().isEmpty()) {
+            return Map.of(
+                    "orderId", orderId,
+                    "error", "Нет данных о билетах",
+                    "status", order.getStatus().name()
+            );
+        }
+
+        Ticket firstTicket = order.getTickets().get(0);
+        Session session = firstTicket.getSession();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        List<Map<String, String>> seatsInfo = order.getTickets().stream()
+                .map(ticket -> {
+                    Seat seat = ticket.getSeat();
+                    return Map.of(
+                            "row", String.valueOf(seat.getRowIndex() + 1),
+                            "seat", seat.getSeatNumber(),
+                            "type", seat.getType().name()
+                    );
+                })
+                .toList();
+        return Map.of(
+                "order_id", orderId,
+                "movie", session.getMovie().getTitle(),
+                "date", session.getStartTime().format(dateFormatter),
+                "time", session.getStartTime().format(timeFormatter),
+                "tickets", seatsInfo
+
+        );
+
+    }
 }

@@ -4,12 +4,66 @@ import api from '../api/axiosConfig';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 
+
+const QrImage = ({ orderId, style, alt, onClick, title, className }) => {
+    const [imageSrc, setImageSrc] = useState(null);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+
+
+        api.get(`/bookings/${orderId}/qr`, { responseType: 'blob' })
+            .then(response => {
+                if (isMounted) {
+                    const url = URL.createObjectURL(response.data);
+                    setImageSrc(url);
+                }
+            })
+            .catch(() => {
+                if (isMounted) setError(true);
+            });
+
+        return () => {
+            isMounted = false;
+            // Чистим память
+            if (imageSrc) URL.revokeObjectURL(imageSrc);
+        };
+    }, [orderId]);
+
+    if (error) {
+        return (
+            <div style={{...style, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', color: '#333', fontSize: '0.7rem', flexDirection: 'column'}}>
+                <span>QR</span>
+                <span>Err</span>
+            </div>
+        );
+    }
+
+    if (!imageSrc) {
+        return <div style={{...style, background: '#f0f0f0'}} />; // Loading skeleton
+    }
+
+    return (
+        <img
+            src={imageSrc}
+            alt={alt}
+            style={style}
+            onClick={() => onClick && onClick(imageSrc)} // Передаем URL при клике
+            title={title}
+            className={className}
+        />
+    );
+};
+
+
 const MyTicketsPage = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState(null);
     const [processingId, setProcessingId] = useState(null);
+    const [selectedQr, setSelectedQr] = useState(null);
 
     const showToast = (message, type = 'error') => {
         setToast({ message, type });
@@ -62,12 +116,10 @@ const MyTicketsPage = () => {
         });
     };
 
-    // --- ЛОГИКА СТАТУСОВ ---
     const getStatusInfo = (order, isArchive) => {
         if (isArchive) {
             return { text: 'ЗАВЕРШЕН', color: '#888', border: '1px solid #555', bg: 'rgba(255,255,255,0.05)', icon: '🏁' };
         }
-
         switch (order.status) {
             case 'PAID': return { text: 'АКТИВЕН', color: '#2ecc71', border: 'none', bg: 'rgba(46, 204, 113, 0.15)', icon: '✅' };
             case 'PENDING': return { text: 'ЖДЕТ ОПЛАТЫ', color: '#f39c12', border: '1px solid #f39c12', bg: 'rgba(243, 156, 18, 0.1)', icon: '⏳' };
@@ -76,29 +128,15 @@ const MyTicketsPage = () => {
         }
     };
 
-    // --- СОРТИРОВКА И ГРУППИРОВКА ---
+
     const now = new Date();
-
-    const pendingOrders = orders
-        .filter(o => o.status === 'PENDING')
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+    const pendingOrders = orders.filter(o => o.status === 'PENDING').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const paidOrders = orders.filter(o => o.status === 'PAID');
-
     const activeOrders = paidOrders
-        .filter(o => {
-            const sessionStart = new Date(o.tickets[0]?.startTime);
-            const sessionEnd = new Date(sessionStart.getTime() + 2 * 60 * 60 * 1000);
-            return sessionEnd > now;
-        })
+        .filter(o => new Date(new Date(o.tickets[0]?.startTime).getTime() + 2 * 60 * 60 * 1000) > now)
         .sort((a, b) => new Date(a.tickets[0]?.startTime) - new Date(b.tickets[0]?.startTime));
-
     const archiveOrders = paidOrders
-        .filter(o => {
-            const sessionStart = new Date(o.tickets[0]?.startTime);
-            const sessionEnd = new Date(sessionStart.getTime() + 2 * 60 * 60 * 1000);
-            return sessionEnd <= now;
-        })
+        .filter(o => new Date(new Date(o.tickets[0]?.startTime).getTime() + 2 * 60 * 60 * 1000) <= now)
         .sort((a, b) => new Date(b.tickets[0]?.startTime) - new Date(a.tickets[0]?.startTime));
 
     // --- РЕНДЕР КАРТОЧКИ ---
@@ -120,9 +158,8 @@ const MyTicketsPage = () => {
                 opacity: isArchive ? 0.85 : 1,
                 transition: 'all 0.2s'
             }}>
-                {/* ЛЕВАЯ ЧАСТЬ */}
                 <div style={{ flex: 1, padding: '25px', display: 'flex', flexDirection: 'column' }}>
-
+                    {/* ... (левая часть без изменений) ... */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                         <span style={{
                             color: status.color, background: status.bg, border: status.border,
@@ -177,17 +214,38 @@ const MyTicketsPage = () => {
                     )}
                 </div>
 
-                {/* РАЗДЕЛИТЕЛЬ */}
                 <div style={{ width: '2px', background: 'transparent', borderLeft: '2px dashed #333', position: 'relative' }}>
                     <div style={{ position: 'absolute', top: '-10px', left: '-10px', width: '20px', height: '20px', background: '#121212', borderRadius: '50%' }}></div>
                     <div style={{ position: 'absolute', bottom: '-10px', left: '-10px', width: '20px', height: '20px', background: '#121212', borderRadius: '50%' }}></div>
                 </div>
 
-                {/* ПРАВАЯ ЧАСТЬ */}
                 <div style={{ width: '180px', background: '#181818', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {order.status === 'PAID' && !isArchive ? (
-                        <div style={{ background: 'white', padding: '8px', borderRadius: '4px' }}>
-                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=ORDER-${order.orderId}`} alt="QR" style={{ display: 'block' }} />
+                        <div
+                            style={{
+                                background: 'white',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                width: '116px',
+                                height: '116px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'zoom-in',
+                                transition: 'transform 0.2s',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            title="Нажмите, чтобы увеличить"
+                        >
+                            {/* --- ИСПОЛЬЗУЕМ НОВЫЙ КОМПОНЕНТ --- */}
+                            <QrImage
+                                orderId={order.orderId}
+                                alt={`QR код билета №${order.orderId}`}
+                                style={{ width: '100px', height: '100px', objectFit: 'contain' }}
+                                onClick={(src) => setSelectedQr({ url: src, id: order.orderId })}
+                            />
                         </div>
                     ) : (
                         <div style={{ color: '#333', fontSize: '3rem', opacity: 0.5 }}>
@@ -201,12 +259,9 @@ const MyTicketsPage = () => {
 
     if (loading) return <div style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Загрузка...</div>;
 
-    // Стили заголовков
     const sectionTitleStyle = {
-        color: '#fff',
-        marginBottom: '20px', fontSize: '1.2rem', fontWeight: 'bold',
-        textTransform: 'uppercase', letterSpacing: '2px',
-        borderLeft: '4px solid #e50914', paddingLeft: '15px',
+        color: '#fff', marginBottom: '20px', fontSize: '1.2rem', fontWeight: 'bold',
+        textTransform: 'uppercase', letterSpacing: '2px', borderLeft: '4px solid #e50914', paddingLeft: '15px',
         textShadow: '0 0 10px rgba(229, 9, 20, 0.3)'
     };
 
@@ -216,12 +271,7 @@ const MyTicketsPage = () => {
             {toast && <Toast message={toast.message} type={toast.type} />}
 
             <div style={{ maxWidth: '900px', margin: '80px auto', padding: '0 20px' }}>
-
-                <h1 style={{
-                    textAlign: 'center', marginBottom: '60px',
-                    color: 'white', fontSize: '2.5rem', letterSpacing: '2px', textTransform: 'uppercase',
-                    textShadow: '0 0 10px #e50914, 0 0 20px #e50914'
-                }}>
+                <h1 style={{ textAlign: 'center', marginBottom: '60px', color: 'white', fontSize: '2.5rem', letterSpacing: '2px', textTransform: 'uppercase', textShadow: '0 0 10px #e50914, 0 0 20px #e50914' }}>
                     Мои билеты
                 </h1>
 
@@ -236,18 +286,14 @@ const MyTicketsPage = () => {
 
                 {activeOrders.length > 0 && (
                     <div style={{ marginBottom: '50px' }}>
-                        <div style={sectionTitleStyle}>
-                            Ближайшие сеансы
-                        </div>
+                        <div style={sectionTitleStyle}>Ближайшие сеансы</div>
                         {activeOrders.map(o => renderOrderCard(o))}
                     </div>
                 )}
 
                 {archiveOrders.length > 0 && (
                     <div>
-                        <div style={{...sectionTitleStyle, borderColor: '#555', color: '#888', textShadow: 'none'}}>
-                            Архив заказов
-                        </div>
+                        <div style={{...sectionTitleStyle, borderColor: '#555', color: '#888', textShadow: 'none'}}>Архив заказов</div>
                         {archiveOrders.map(o => renderOrderCard(o, true))}
                     </div>
                 )}
@@ -259,6 +305,58 @@ const MyTicketsPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* --- МОДАЛКА (QR) --- */}
+            {selectedQr && (
+                <div
+                    onClick={() => setSelectedQr(null)}
+                    style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0, 0, 0, 0.9)', zIndex: 2000,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        backdropFilter: 'blur(5px)',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: 'white', padding: '30px', borderRadius: '20px',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            boxShadow: '0 0 50px rgba(229, 9, 20, 0.3)',
+                            transform: 'scale(1)',
+                            animation: 'zoomIn 0.2s ease-out'
+                        }}
+                    >
+                        <h3 style={{color: '#1a1a1a', margin: '0 0 20px 0', textTransform: 'uppercase', letterSpacing: '1px'}}>
+                            Ваш билет
+                        </h3>
+                        <img
+                            src={selectedQr.url}
+                            style={{ width: '280px', height: '280px', display: 'block' }}
+                            alt="QR Full"
+                        />
+                        <div style={{marginTop: '20px', color: '#555', textAlign: 'center', fontSize: '0.9rem'}}>
+                            Покажите контролеру на входе
+                        </div>
+                        <button
+                            onClick={() => setSelectedQr(null)}
+                            style={{
+                                marginTop: '25px', padding: '10px 30px',
+                                background: '#e50914', color: 'white', border: 'none',
+                                borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold'
+                            }}
+                        >
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes zoomIn { from { transform: scale(0.9); } to { transform: scale(1); } }
+            `}</style>
         </div>
     );
 };

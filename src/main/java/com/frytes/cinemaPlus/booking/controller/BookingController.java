@@ -4,16 +4,20 @@ import com.frytes.cinemaPlus.booking.dto.*;
 import com.frytes.cinemaPlus.booking.entity.Order;
 import com.frytes.cinemaPlus.booking.service.BookingService;
 import com.frytes.cinemaPlus.booking.service.PaymentService;
+import com.frytes.cinemaPlus.common.service.QrCodeService;
 import com.frytes.cinemaPlus.content.dto.SeatStatusDto;
 import com.frytes.cinemaPlus.users.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -23,6 +27,7 @@ public class BookingController {
     public final BookingService bookingService;
     public final PaymentService paymentService;
     private final BookingMapper bookingMapper;
+    private final QrCodeService qrCodeService;
 
     @GetMapping("/session/{sessionId}/seats")
     public ResponseEntity<List<SeatStatusDto>> getSeatsForSession(@PathVariable Long sessionId) {
@@ -47,6 +52,19 @@ public class BookingController {
                 .toList();
         return ResponseEntity.ok(history);
     }
+
+    @GetMapping(value = "/{orderId}/qr", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getOrderQrCode(@PathVariable Long orderId) {
+            Map<String, Object> qrData = bookingService.getOrderQrData(orderId);
+            byte[] qrImage = qrCodeService.generateQrCodeFromData(qrData);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(qrImage);
+
+    }
+
+
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(

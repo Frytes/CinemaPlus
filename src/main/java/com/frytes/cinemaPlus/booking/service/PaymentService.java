@@ -8,6 +8,7 @@ import com.frytes.cinemaPlus.booking.event.TicketDetail;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
 import com.frytes.cinemaPlus.booking.repository.TicketRepository;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
+import com.frytes.cinemaPlus.content.entity.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,13 +65,14 @@ public class PaymentService {
             orderRepository.save(order);
 
             String movieTitle = "Unknown";
-            if (!order.getTickets().isEmpty()) {
-                movieTitle = order.getTickets().getFirst().getSession().getMovie().getTitle();
-            }
-
+            String hallName = "Unknown Hall";
             Long sessionId = null;
+
             if (!order.getTickets().isEmpty()) {
-                sessionId = order.getTickets().getFirst().getSession().getId();
+                Session session = order.getTickets().getFirst().getSession();
+                movieTitle = session.getMovie().getTitle();
+                hallName = session.getHall().getName();
+                sessionId = session.getId();
             }
 
             List<TicketDetail> ticketDetails = order.getTickets().stream()
@@ -90,6 +92,7 @@ public class PaymentService {
                     order.getUser().getEmail(),
                     movieTitle,
                     sessionId,
+                    hallName,
                     ticketDetails,
                     order.getTotalPrice(),
                     LocalDateTime.now()

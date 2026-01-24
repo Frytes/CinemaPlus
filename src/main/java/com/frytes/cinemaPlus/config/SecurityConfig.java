@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers( "/api/sessions/**").permitAll()
                         .requestMatchers("/api/bookings/my-tickets").authenticated()
                         .requestMatchers("/api/bookings/session/*/my-pending").authenticated()
+                        .requestMatchers(GET, "/api/bookings/*/qr").authenticated()
                         .requestMatchers(GET,"/api/bookings/session/**").permitAll()
                         .anyRequest().authenticated()
                 )

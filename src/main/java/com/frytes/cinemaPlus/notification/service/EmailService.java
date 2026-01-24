@@ -25,11 +25,10 @@ public class EmailService {
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
-            log.info("📧 Email отправлен: {}", to);
+            log.info("📧 Email отправлен на: {}", to);
 
         } catch (Exception e) {
             log.error("❌ Ошибка отправки почты: {}", e.getMessage());
-            throw new RuntimeException("Ошибка SMTP сервера", e);
         }
     }
 }
