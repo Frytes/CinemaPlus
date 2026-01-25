@@ -2,9 +2,8 @@ package com.frytes.cinemaPlus.users.service;
 
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.common.exception.UserAlreadyExistsException;
-import com.frytes.cinemaPlus.users.dto.LoginRequest;
-import com.frytes.cinemaPlus.users.dto.RegisterRequest;
-import com.frytes.cinemaPlus.users.dto.UserMapper;
+import com.frytes.cinemaPlus.users.dto.*;
+import com.frytes.cinemaPlus.users.entity.RefreshToken;
 import com.frytes.cinemaPlus.users.entity.Role;
 import com.frytes.cinemaPlus.users.entity.User;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
@@ -27,9 +26,10 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public String register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         String normalizedEmail = request.email().toLowerCase();
 
         if (userRepository.existsByEmail(normalizedEmail)) {
@@ -57,9 +57,13 @@ public class AuthService {
         } catch (Exception e) {
             log.error("Ошибка отправки в Kafka, но регистрация прошла успешно", e);
         }
-        return  jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+
+        return new AuthResponse(accessToken, refreshToken.getToken());
     }
-    public String login(LoginRequest request) {
+
+    public AuthResponse login(LoginRequest request) {
         String normalizedEmail = request.email().toLowerCase();
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -70,8 +74,13 @@ public class AuthService {
 
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-        return jwtService.generateToken(user);
-    }
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
+        return new AuthResponse(accessToken, refreshToken.getToken());
+    }
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        return refreshTokenService.processRefresh(request.refreshToken());
+    }
 
 }
