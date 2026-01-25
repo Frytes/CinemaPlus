@@ -17,6 +17,7 @@ import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -117,7 +119,7 @@ public class PaymentService {
                         SocketStatus.SOLD
                 );
             }
-
+            log.info("✅ Payment success! Outbox event saved. Order ID: {}", order.getId());
             return true;
         } else {
             for (Ticket ticket : order.getTickets()) {
