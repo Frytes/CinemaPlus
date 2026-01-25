@@ -1,10 +1,12 @@
 package com.frytes.cinemaPlus.notification;
 
 import com.frytes.cinemaPlus.BaseIntegrationTest;
+import com.frytes.cinemaPlus.booking.dto.BookingRequest;
 import com.frytes.cinemaPlus.booking.entity.Order;
 import com.frytes.cinemaPlus.booking.entity.Ticket;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
+import com.frytes.cinemaPlus.booking.service.BookingService;
 import com.frytes.cinemaPlus.booking.service.PaymentService;
 import com.frytes.cinemaPlus.content.entity.Hall;
 import com.frytes.cinemaPlus.content.entity.Movie;
@@ -32,6 +34,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +52,7 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
     @Autowired private HallRepository hallRepository;
     @Autowired private SessionRepository sessionRepository;
     @Autowired private SeatRepository seatRepository;
+    @Autowired private BookingService bookingService;
 
     @MockitoBean
     private JavaMailSender javaMailSender;
@@ -78,24 +82,14 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
         Session session = new Session(null, movie, hall, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), BigDecimal.valueOf(100));
         sessionRepository.save(session);
 
-        Order order = Order.builder()
-                .user(user)
-                .status(OrderStatus.PENDING)
-                .totalPrice(BigDecimal.valueOf(100))
-                .tickets(new ArrayList<>())
-                .build();
+        BookingRequest bookingRequest = new BookingRequest(session.getId(), List.of(seat.getId()));
+        Order order = bookingService.createBooking(bookingRequest, user);
 
-        Ticket ticket = Ticket.builder()
-                .session(session)
-                .seat(seat)
-                .order(order)
-                .build();
-        order.getTickets().add(ticket);
+        Long orderId = order.getId();
 
-        orderRepository.save(order);
 
         // WHEN
-        paymentService.processPayment(order.getId());
+        paymentService.processPayment(orderId);
 
         // THEN
         await()
