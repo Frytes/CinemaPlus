@@ -14,6 +14,7 @@ import com.frytes.cinemaPlus.content.entity.Movie;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
+import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import com.frytes.cinemaPlus.repository.SeatRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
@@ -45,7 +46,7 @@ class BookingServiceUnitTest {
     @Mock private BookingLockService bookingLockService;
     @Mock private PriceCalculator priceCalculator;
     @Mock private PricingRulesService pricingRulesService;
-
+    @Mock private SocketNotificationService socketService;
 
     @InjectMocks
     private BookingService bookingService;
@@ -74,6 +75,8 @@ class BookingServiceUnitTest {
         when(seatRepository.findAllById(request.seatIds())).thenReturn(List.of(seat));
         when(bookingLockService.acquireLock(any(), any(), any())).thenReturn(true);
         when(priceCalculator.calculateTotal(any(), any())).thenReturn(BigDecimal.valueOf(100));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
 
         // When
         Order order = bookingService.createBooking(request, user);
@@ -81,7 +84,6 @@ class BookingServiceUnitTest {
         // Then
         verify(bookingLockService).acquireLock(session.getId(), seat.getId(), user.getId());
         verify(orderRepository).save(any(Order.class));
-        verify(ticketRepository).save(any(Ticket.class));
         assertThat(order.getTotalPrice()).isEqualTo(BigDecimal.valueOf(100));
     }
 

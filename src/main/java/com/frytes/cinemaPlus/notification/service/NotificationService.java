@@ -26,6 +26,7 @@ public class NotificationService {
 
     @KafkaListener(topics = "booking-events-topic", groupId = "notification-group")
     public void handleBookingPaid(String message) {
+        log.info("📨 Kafka Consumer received event: {}", message);
         try{
             BookingPaidEvent event = objectMapper.readValue(message, BookingPaidEvent.class);
             log.info("📩 Генерация письма для заказа #{}", event.orderId());

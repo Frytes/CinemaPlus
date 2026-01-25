@@ -16,7 +16,9 @@ import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
+@Setter
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -47,6 +51,7 @@ public class PaymentService {
     private int failProbability;
 
     @SneakyThrows
+    @Transactional
     public boolean processPayment(Long orderId) {
 
         if (delayMs > 0) {
@@ -60,7 +65,7 @@ public class PaymentService {
     @SneakyThrows
     @Transactional
     protected boolean finalizeOrder(Long orderId, boolean paymentSuccess)  {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findLockedWithDetailsById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
@@ -69,7 +74,6 @@ public class PaymentService {
 
         if (paymentSuccess) {
             order.setStatus(OrderStatus.PAID);
-            orderRepository.save(order);
 
             String movieTitle = "Unknown";
             String hallName = "Unknown Hall";
@@ -118,7 +122,6 @@ public class PaymentService {
                         SocketStatus.SOLD
                 );
             }
-
             return true;
         } else {
             for (Ticket ticket : order.getTickets()) {
@@ -139,7 +142,6 @@ public class PaymentService {
             order.getTickets().clear();
             order.setStatus(OrderStatus.CANCELLED);
 
-            orderRepository.save(order);
             return false;
         }
     }

@@ -39,11 +39,11 @@ public class DataInitializer implements CommandLineRunner {
             HallRepository hallRepository,
             MovieRepository movieRepository,
             SessionRepository sessionRepository,
-            @Value("${cinema.pricing.base-price-morning}") BigDecimal basePriceMorning,
-            @Value("${cinema.pricing.base-price-evening}") BigDecimal basePriceEvening,
-            @Value("${cinema.pricing.surcharge_red_hall}") BigDecimal surchargeRedHall,
-            @Value("${cinema.pricing.surcharge_blue_hall}") BigDecimal surchargeBlueHall,
-            @Value("${cinema.pricing.surcharge_green_hall}") BigDecimal surchargeGreenHall
+            @Value("${cinema.demo-seeding.price-generation.base-morning}") BigDecimal basePriceMorning,
+            @Value("${cinema.demo-seeding.price-generation.base-evening}") BigDecimal basePriceEvening,
+            @Value("${cinema.demo-seeding.price-generation.hall-surcharges.red}") BigDecimal surchargeRedHall,
+            @Value("${cinema.demo-seeding.price-generation.hall-surcharges.blue}") BigDecimal surchargeBlueHall,
+            @Value("${cinema.demo-seeding.price-generation.hall-surcharges.green}") BigDecimal surchargeGreenHall
     ) {
         this.hallRepository = hallRepository;
         this.movieRepository = movieRepository;
@@ -184,12 +184,13 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createSeat(Hall hall, int row, int col, int number, SeatType type) {
-        Seat seat = new Seat();
-        seat.setHall(hall);
-        seat.setRowIndex(row);
-        seat.setColIndex(col);
-        seat.setSeatNumber(String.valueOf(number));
-        seat.setType(type);
+        Seat seat = Seat.builder()
+                .hall(hall)
+                .rowIndex(row)
+                .colIndex(col)
+                .seatNumber(String.valueOf(number))
+                .type(type)
+                .build();
         hall.addSeat(seat);
     }
     private void initSessions() {
@@ -232,12 +233,13 @@ public class DataInitializer implements CommandLineRunner {
                     if (hall.getName().contains("Красный зал")) price = price.add(surchargeRedHall);
                     if (hall.getName().contains("Синий зал")) price = price.add(surchargeBlueHall);
 
-                    Session session = new Session();
-                    session.setMovie(movie);
-                    session.setHall(hall);
-                    session.setStartTime(startDateTime);
-                    session.setEndTime(endDateTime);
-                    session.setBasePrice(price);
+                    Session session = Session.builder()
+                            .movie(movie)
+                            .hall(hall)
+                            .startTime(startDateTime)
+                            .endTime(endDateTime)
+                            .basePrice(price)
+                            .build();
 
                     sessionRepository.save(session);
 

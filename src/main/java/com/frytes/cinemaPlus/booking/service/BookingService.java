@@ -94,7 +94,7 @@ public class BookingService {
                     .totalPrice(totalPrice)
                     .tickets(new ArrayList<>())
                     .build();
-            orderRepository.save(order);
+
 
             for (Seat seat : seats) {
                 Ticket ticket = Ticket.builder()
@@ -103,13 +103,12 @@ public class BookingService {
                         .order(order)
                         .build();
 
-                ticketRepository.save(ticket);
+
                 order.getTickets().add(ticket);
                 socketService.sendSeatUpdate(session.getId(), seat, SocketStatus.LOCKED);
             }
-            System.out.println("Order tickets: " + order.getTickets());
-            System.out.println("Order tickets size: " + (order.getTickets() != null ? order.getTickets().size() : "null"));
-            return order;
+
+            return orderRepository.save(order);
         } catch (RuntimeException e) {
 
             for (Long seatId : lockedSeats) {
@@ -199,17 +198,17 @@ public class BookingService {
             return Optional.empty();
         }
         return orderRepository.findTopByUserIdAndStatusOrderByCreatedAtDesc(user.getId(), OrderStatus.PENDING)
-                .filter(order -> {
-                    if (!order.getTickets().isEmpty())
-                        return order.getTickets().getFirst().getSession().getId().equals(sessionId);
-                    return false;
-                });
+                .map(Order::getId)
+                .flatMap(orderRepository::findWithDetailsById)
+                .filter(order -> !order.getTickets().isEmpty()
+                        && order.getTickets().getFirst().getSession().getId().equals(sessionId));
     }
 
     @Transactional(readOnly = true)
     public List<Order> getMyOrders(User user) {
         return orderRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
     }
+
 
     public Map<String, Object> getOrderQrData(Long orderId) {
 

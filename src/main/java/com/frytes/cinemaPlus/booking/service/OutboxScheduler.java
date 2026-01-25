@@ -22,6 +22,7 @@ public class OutboxScheduler {
     private final KafkaTemplate<String,Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
+
     @Scheduled(fixedDelay = 2000)
     @Transactional
     public void processOutbox(){
