@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -59,6 +61,7 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("После успешной оплаты должно отправиться письмо (через Kafka)")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldSendEmail_WhenOrderIsPaid() {
         //GIVEN
         User user = new User(null, "testuser", "test@email.com", "password123", Role.USER);

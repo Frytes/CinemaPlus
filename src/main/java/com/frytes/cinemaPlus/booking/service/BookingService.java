@@ -94,7 +94,7 @@ public class BookingService {
                     .totalPrice(totalPrice)
                     .tickets(new ArrayList<>())
                     .build();
-            orderRepository.save(order);
+
 
             for (Seat seat : seats) {
                 Ticket ticket = Ticket.builder()
