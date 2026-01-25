@@ -60,7 +60,7 @@ public class PaymentService {
     @SneakyThrows
     @Transactional
     protected boolean finalizeOrder(Long orderId, boolean paymentSuccess)  {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findWithDetailsById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
