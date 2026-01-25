@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -63,6 +64,9 @@ class BookingReliabilityTest extends BaseIntegrationTest {
     private User user;
     private Session session;
     private Seat seat;
+
+    @Value("${cinema.rules.lock-duration-minutes}")
+    private int lockDurationMinutes;
 
     @BeforeEach
     void setUp() {
@@ -135,13 +139,15 @@ class BookingReliabilityTest extends BaseIntegrationTest {
     void shouldCleanup_WhenBookingExpired() {
         BookingRequest request1 = new BookingRequest(session.getId(), List.of(seat.getId()));
         Order order = bookingService.createBooking(request1, user);
-        order.setCreatedAt(LocalDateTime.now().minusMinutes(5));
 
-        orderRepository.save(order);
+        LocalDateTime oldDate = LocalDateTime.now().minusMinutes(lockDurationMinutes + 5);
+        orderRepository.forceUpdateCreatedAt(order.getId(), oldDate);
+
         bookingCleanupService.cleanupExpiredBookings();
 
         Order expiredOrder = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(expiredOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+
 
         User user2 = userRepository.save(new User(null, "user2", "u2@test.com", "password123", Role.USER));
         Order order2 = bookingService.createBooking(request1, user2);

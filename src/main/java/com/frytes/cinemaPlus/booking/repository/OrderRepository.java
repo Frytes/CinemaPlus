@@ -3,10 +3,7 @@ package com.frytes.cinemaPlus.booking.repository;
 import com.frytes.cinemaPlus.booking.entity.Order;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +33,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {
+            "user",
             "tickets", "tickets.seat", "tickets.session",
             "tickets.session.movie", "tickets.session.hall"
     })
@@ -51,4 +49,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     })
     List<Order> findAllByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime dateTime);
 
+    @Modifying
+    @Query(value = "UPDATE orders SET created_at = :date WHERE id = :id", nativeQuery = true)
+    void forceUpdateCreatedAt(Long id, LocalDateTime date);
 }
