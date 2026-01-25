@@ -12,7 +12,6 @@ const QrImage = ({ orderId, style, alt, onClick, title, className }) => {
     useEffect(() => {
         let isMounted = true;
 
-
         api.get(`/bookings/${orderId}/qr`, { responseType: 'blob' })
             .then(response => {
                 if (isMounted) {
@@ -265,6 +264,48 @@ const MyTicketsPage = () => {
         textShadow: '0 0 10px rgba(229, 9, 20, 0.3)'
     };
 
+    const emptyStateStyle = {
+        textAlign: 'center',
+        padding: '50px',
+        background: 'rgba(30, 30, 30, 0.8)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+        margin: '40px auto',
+        maxWidth: '600px'
+    };
+
+    const emptyTitleStyle = {
+        color: '#fff',
+        fontSize: '1.8rem',
+        marginBottom: '20px',
+        textShadow: '0 0 10px rgba(229, 9, 20, 0.3)',
+        fontWeight: 'bold',
+        letterSpacing: '1px'
+    };
+
+    const emptyTextStyle = {
+        color: '#aaa',
+        fontSize: '1.1rem',
+        marginBottom: '30px',
+        lineHeight: '1.6'
+    };
+
+    const buttonStyle = {
+        background: '#e50914',
+        color: 'white',
+        border: 'none',
+        padding: '12px 30px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '1rem',
+        boxShadow: '0 4px 15px rgba(229, 9, 20, 0.4)',
+        transition: 'all 0.2s',
+        textTransform: 'uppercase',
+        letterSpacing: '1px'
+    };
+
     return (
         <div style={{ color: 'white', minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Segoe UI", sans-serif' }}>
             <Navbar />
@@ -299,9 +340,20 @@ const MyTicketsPage = () => {
                 )}
 
                 {orders.length === 0 && (
-                    <div style={{ textAlign: 'center', color: '#555', padding: '50px' }}>
-                        <h2>История пуста</h2>
-                        <button onClick={() => navigate('/')} style={{marginTop:'20px', background:'#333', color:'white', border:'none', padding:'10px 20px', borderRadius:'6px', cursor:'pointer'}}>В афишу</button>
+                    <div style={emptyStateStyle}>
+                        <div style={emptyTitleStyle}>🎬 История пуста</div>
+                        <div style={emptyTextStyle}>
+                            У вас еще нет оформленных билетов.<br />
+                            Выберите фильм и места в <span style={{color: '#e50914', fontWeight: 'bold'}}>Афише</span>, чтобы начать!
+                        </div>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={buttonStyle}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            Перейти в афишу
+                        </button>
                     </div>
                 )}
             </div>

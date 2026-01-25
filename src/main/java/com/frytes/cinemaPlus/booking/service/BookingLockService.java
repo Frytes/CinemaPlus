@@ -19,7 +19,7 @@ public class BookingLockService {
 
     public BookingLockService(
             StringRedisTemplate redisTemplate,
-            @Value("${cinema.lock-duration}") long durationMinutes
+            @Value("${cinema.rules.lock-duration-minutes}") long durationMinutes
     ) {
         this.redisTemplate = redisTemplate;
         this.lockDuration = Duration.ofMinutes(durationMinutes);

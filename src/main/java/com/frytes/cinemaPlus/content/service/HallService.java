@@ -30,12 +30,12 @@ public class HallService {
         hall.setHeight(request.height());
         for (int row = 0; row < request.height(); row++) {
             for (int col = 0; col < request.width(); col++) {
-                Seat seat = new Seat();
-                seat.setRowIndex(row);
-                seat.setColIndex(col);
-                seat.setType(SeatType.STANDARD);
-                String seatNum = String.format("%d-%d", row + 1, col + 1);
-                seat.setSeatNumber(seatNum);
+                Seat seat = Seat.builder()
+                        .rowIndex(row)
+                        .colIndex(col)
+                        .type(SeatType.STANDARD)
+                        .seatNumber(String.format("%d-%d", row + 1, col + 1))
+                        .build();
                 hall.addSeat(seat);
             }
         }

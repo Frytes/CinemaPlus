@@ -12,7 +12,9 @@ import com.frytes.cinemaPlus.booking.repository.OrderRepository;
 import com.frytes.cinemaPlus.booking.repository.OutboxRepository;
 import com.frytes.cinemaPlus.booking.repository.TicketRepository;
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
+import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Session;
+import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -33,15 +34,16 @@ public class PaymentService {
     private final TicketRepository ticketRepository;
     private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
+    private final SocketNotificationService socketService;
 
 
     private final Random random = new Random();
 
 
-    @Value("${cinema.payment.delay-ms:1000}")
+    @Value("${cinema.mock.payment.delay-ms:1000}")
     private int delayMs;
 
-    @Value("${cinema.payment.fail-probability:10}")
+    @Value("${cinema.mock.payment.fail-probability:10}")
     private int failProbability;
 
     @SneakyThrows
@@ -109,6 +111,13 @@ public class PaymentService {
                     .status(OutboxStatus.NEW)
                     .build();
             outboxRepository.save(outboxEvent);
+            for (Ticket ticket : order.getTickets()) {
+                socketService.sendSeatUpdate(
+                        ticket.getSession().getId(),
+                        ticket.getSeat(),
+                        SocketStatus.SOLD
+                );
+            }
 
             return true;
         } else {
@@ -117,15 +126,20 @@ public class PaymentService {
                         ticket.getSession().getId(),
                         ticket.getSeat().getId(),
                         order.getUser().getId()
+
+                );
+                socketService.sendSeatUpdate(
+                        ticket.getSession().getId(),
+                        ticket.getSeat(),
+                        SocketStatus.AVAILABLE
                 );
             }
-            List<Ticket> ticketsToDelete = new ArrayList<>(order.getTickets());
+
+            ticketRepository.deleteAll(order.getTickets());
             order.getTickets().clear();
-            ticketRepository.deleteAll(ticketsToDelete);
-
             order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
 
+            orderRepository.save(order);
             return false;
         }
     }

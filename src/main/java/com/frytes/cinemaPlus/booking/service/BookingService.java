@@ -13,9 +13,11 @@ import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.common.exception.SeatAlreadySoldException;
 import com.frytes.cinemaPlus.common.exception.UserAlreadyExistsException;
 import com.frytes.cinemaPlus.content.dto.SeatStatusDto;
+import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
+import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import com.frytes.cinemaPlus.repository.SeatRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
@@ -40,6 +42,7 @@ public class BookingService {
     private final BookingLockService bookingLockService;
     private final PriceCalculator priceCalculator;
     private final PricingRulesService pricingRulesService;
+    private final SocketNotificationService socketService;
 
     @Transactional
     public Order createBooking(BookingRequest request, User user) {
@@ -85,20 +88,27 @@ public class BookingService {
         BigDecimal totalPrice = priceCalculator.calculateTotal(session, seats);
 
         try {
-            Order order = new Order();
-            order.setUser(user);
-            order.setStatus(OrderStatus.PENDING);
-            order.setTotalPrice(totalPrice);
+            Order order = Order.builder()
+                    .user(user)
+                    .status(OrderStatus.PENDING)
+                    .totalPrice(totalPrice)
+                    .tickets(new ArrayList<>())
+                    .build();
             orderRepository.save(order);
 
             for (Seat seat : seats) {
-                Ticket ticket = new Ticket();
-                ticket.setSession(session);
-                ticket.setSeat(seat);
-                ticket.setOrder(order);
-                ticketRepository.save(ticket);
-            }
+                Ticket ticket = Ticket.builder()
+                        .session(session)
+                        .seat(seat)
+                        .order(order)
+                        .build();
 
+                ticketRepository.save(ticket);
+                order.getTickets().add(ticket);
+                socketService.sendSeatUpdate(session.getId(), seat, SocketStatus.LOCKED);
+            }
+            System.out.println("Order tickets: " + order.getTickets());
+            System.out.println("Order tickets size: " + (order.getTickets() != null ? order.getTickets().size() : "null"));
             return order;
         } catch (RuntimeException e) {
 
@@ -170,10 +180,15 @@ public class BookingService {
                     ticket.getSeat().getId(),
                     user.getId()
             );
+
+            socketService.sendSeatUpdate(
+                    ticket.getSession().getId(),
+                    ticket.getSeat(),
+                    SocketStatus.AVAILABLE
+            );
         }
-        List<Ticket> ticketsToDelete = new ArrayList<>(order.getTickets());
+        ticketRepository.deleteAll(order.getTickets());
         order.getTickets().clear();
-        ticketRepository.deleteAll(ticketsToDelete);
         order.setStatus(OrderStatus.CANCELLED);
 
         orderRepository.save(order);

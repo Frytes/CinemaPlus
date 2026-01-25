@@ -10,12 +10,14 @@ import com.frytes.cinemaPlus.users.entity.User;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import com.frytes.cinemaPlus.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -49,7 +51,12 @@ public class AuthService {
                 user.getEmail(),
                 user.getUsername()
         );
-        kafkaTemplate.send("user-events-topic", user.getEmail(), event);
+        try {
+            kafkaTemplate.send("user-events-topic", user.getEmail(), event);
+            log.info("Событие регистрации отправлено в Kafka");
+        } catch (Exception e) {
+            log.error("Ошибка отправки в Kafka, но регистрация прошла успешно", e);
+        }
         return  jwtService.generateToken(user);
     }
     public String login(LoginRequest request) {

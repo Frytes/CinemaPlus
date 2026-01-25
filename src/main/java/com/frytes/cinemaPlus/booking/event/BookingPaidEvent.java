@@ -1,7 +1,5 @@
 package com.frytes.cinemaPlus.booking.event;
 
-import com.frytes.cinemaPlus.content.entity.Hall;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;

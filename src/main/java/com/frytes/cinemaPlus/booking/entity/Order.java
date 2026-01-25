@@ -3,8 +3,7 @@ package com.frytes.cinemaPlus.booking.entity;
 import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.users.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -16,6 +15,9 @@ import java.util.List;
 @Table(name = "orders")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +40,5 @@ public class Order {
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
+
 }

@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import { Client } from '@stomp/stompjs';
 
 const SessionPage = () => {
     const { id } = useParams();
@@ -13,26 +14,18 @@ const SessionPage = () => {
     const [selectedSeatIds, setSelectedSeatIds] = useState([]);
     const [gridSize, setGridSize] = useState({ rows: 0, cols: 0 });
     const [loading, setLoading] = useState(true);
-
-    // Заказ
     const [createdOrder, setCreatedOrder] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-
-    // Таймер
     const [timeLeft, setTimeLeft] = useState(0);
-
-    // UI
     const [toast, setToast] = useState(null);
     const [tooltip, setTooltip] = useState(null);
 
     const showToast = (message, type = 'error') => {
         setToast({ message, type });
-        setTimeout(() => {
-            setToast(null);
-        }, 2000);
+        setTimeout(() => setToast(null), 2000);
     };
 
-    // --- 1. ЗАГРУЗКА ДАННЫХ (Зал + Активный заказ) ---
+    // --- 1. ЗАГРУЗКА ДАННЫХ ---
     const fetchSeats = useCallback(async () => {
         try {
             const res = await api.get(`/bookings/session/${id}/seats`);
@@ -46,7 +39,7 @@ const SessionPage = () => {
             }
         } catch (err) {
             console.error(err);
-            setToast({ message: "Не удалось загрузить зал", type: 'error' });
+            showToast("Не удалось загрузить зал", 'error');
         } finally {
             setLoading(false);
         }
@@ -57,11 +50,8 @@ const SessionPage = () => {
         try {
             const res = await api.get(`/bookings/session/${id}/my-pending`);
             if (res.data) {
-                console.log("Restored order:", res.data);
                 setCreatedOrder(res.data);
-                if (res.data.seatIds && res.data.seatIds.length > 0) {
-                    setSelectedSeatIds(res.data.seatIds);
-                }
+                // Не устанавливаем selectedSeatIds - используем effectiveSeatIds
             }
         } catch (err) {
             // Игнорируем
@@ -74,48 +64,95 @@ const SessionPage = () => {
         checkPendingOrder();
     }, [fetchSeats, checkPendingOrder]);
 
-    // --- 2. ТАЙМЕР ---
-    const ORDER_TTL_SECONDS = 600;
+    // --- 2. WEBSOCKET ---
+    useEffect(() => {
+        const client = new Client({
+            brokerURL: 'ws://localhost:8080/ws',
+            debug: (str) => console.log('STOMP:', str),
+            onConnect: () => {
+                console.log('✅ WebSocket подключен');
+                client.subscribe(`/topic/session/${id}`, (message) => {
+                    console.log('📨 Получено сообщение:', message.body);
+                    try {
+                        const body = JSON.parse(message.body);
+                        console.log('✅ Парсинг успешен:', body);
 
+                        // Обновляем статус места
+                        setSeats(prevSeats => prevSeats.map(seat => {
+                            if (seat.id === body.seatId) {
+                                const isBookedNow = (body.status === 'LOCKED' || body.status === 'SOLD');
+                                return { ...seat, isBooked: isBookedNow };
+                            }
+                            return seat;
+                        }));
+
+                        // Если место заблокировано/продано и у нас нет заказа - убираем из выбранных
+                        if ((body.status === 'LOCKED' || body.status === 'SOLD') && !createdOrder) {
+                            setSelectedSeatIds(prev => prev.filter(sid => sid !== body.seatId));
+                        }
+
+                    } catch (error) {
+                        console.error('❌ Ошибка парсинга сообщения:', error);
+                    }
+                });
+            },
+            onStompError: (frame) => {
+                console.error('❌ WebSocket ошибка:', frame.headers['message']);
+            },
+            onDisconnect: () => {
+                console.log('🔌 WebSocket отключен');
+            },
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        client.activate();
+
+        return () => {
+            console.log('🧹 Очистка WebSocket');
+            client.deactivate();
+        };
+    }, [id, createdOrder]); // Добавили createdOrder в зависимости
+
+    // --- 3. ТАЙМЕР ---
     useEffect(() => {
         let timer = null;
+        const ORDER_TTL_SECONDS = 600;
 
         if (createdOrder && createdOrder.createdAt) {
-            const startTimer = () => {
-                const createdTime = new Date(createdOrder.createdAt).getTime();
-                const expiryTime = createdTime + (ORDER_TTL_SECONDS * 1000);
+            const createdTime = new Date(createdOrder.createdAt).getTime();
+            const expiryTime = createdTime + (ORDER_TTL_SECONDS * 1000);
 
-                timer = setInterval(() => {
-                    const now = Date.now();
-                    const secondsLeft = Math.floor((expiryTime - now) / 1000);
+            const updateTimer = () => {
+                const now = Date.now();
+                const secondsLeft = Math.floor((expiryTime - now) / 1000);
 
-                    if (secondsLeft <= 0) {
-                        clearInterval(timer);
-                        setTimeLeft(0);
-                        handleCancelOrder();
-                        setToast({ message: "Время бронирования истекло", type: 'error' });
-                    } else {
-                        setTimeLeft(secondsLeft);
-                    }
-                }, 1000);
+                if (secondsLeft <= 0) {
+                    clearInterval(timer);
+                    setTimeLeft(0);
+                    handleCancelOrder();
+                    showToast("Время бронирования истекло", 'error');
+                } else {
+                    setTimeLeft(secondsLeft);
+                }
             };
 
-            startTimer();
-        } else {
-            clearInterval(timer);
+            updateTimer();
+            timer = setInterval(updateTimer, 1000);
         }
-        return () => clearInterval(timer);
+
+        return () => {
+            if (timer) clearInterval(timer);
+        };
     }, [createdOrder]);
 
-    const formatTime = (seconds) => {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s < 10 ? '0' : ''}${s}`;
-    };
+    // --- ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ ---
+    const effectiveSeatIds = createdOrder ? createdOrder.seatIds : selectedSeatIds;
 
-    // --- 3. ДЕЙСТВИЯ (Клик, Отмена, Оплата, Бронь) ---
+    // --- 4. ОБРАБОТЧИКИ ---
     const handleSeatClick = (seat) => {
-        const isMyBooking = seat.isBooked && selectedSeatIds.includes(seat.id);
+        const isMyBooking = seat.isBooked && effectiveSeatIds.includes(seat.id);
 
         if (seat.isBooked && !isMyBooking) {
             return;
@@ -143,13 +180,10 @@ const SessionPage = () => {
         try {
             setIsProcessing(true);
             await api.post(`/bookings/${createdOrder.orderId}/cancel`);
-
             showToast("Заказ отменен", "success");
             setCreatedOrder(null);
             setSelectedSeatIds([]);
-
             setTimeout(() => fetchSeats(), 500);
-
         } catch (err) {
             console.error("Cancel Error:", err);
             setCreatedOrder(null);
@@ -163,18 +197,14 @@ const SessionPage = () => {
         try {
             setIsProcessing(true);
             const payRes = await api.post(`/bookings/${createdOrder.orderId}/pay`);
-
             showToast(`Успешно! ${payRes.data.message}`, 'success');
-
             setCreatedOrder(null);
             setSelectedSeatIds([]);
             setTimeout(() => fetchSeats(), 1500);
-
         } catch (err) {
             console.error("Payment Error:", err);
             const msg = err.response?.data?.message || 'Ошибка оплаты';
             showToast(msg);
-
             setCreatedOrder(null);
             setTimeout(() => fetchSeats(), 1500);
         } finally {
@@ -202,6 +232,8 @@ const SessionPage = () => {
                 seatIds: selectedSeatIds
             });
             setCreatedOrder(response.data);
+            // Очищаем selectedSeatIds после успешного бронирования
+            setSelectedSeatIds([]);
         } catch (err) {
             console.error("Booking Error:", err);
             const msg = err.response?.data?.message || 'Ошибка сервера';
@@ -215,24 +247,34 @@ const SessionPage = () => {
         }
     };
 
-    // --- TOOLTIP ---
+    // --- 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
     const handleMouseEnter = (e, seat) => {
         const rect = e.target.getBoundingClientRect();
         setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 10, seat: seat });
     };
-    const handleMouseLeave = () => { setTooltip(null); };
 
-    // --- РАСЧЕТЫ ---
+    const handleMouseLeave = () => {
+        setTooltip(null);
+    };
+
+    // --- 6. РЕНДЕР ---
+    if (loading) return <div style={{color:'white', textAlign:'center', marginTop:'100px'}}>Загрузка...</div>;
+
     const currentTotal = seats
-        .filter(s => selectedSeatIds.includes(s.id))
+        .filter(s => effectiveSeatIds.includes(s.id))
         .reduce((sum, s) => sum + s.price, 0);
 
-    // ФИКС: Если у createdOrder нет totalPrice или он 0, используем currentTotal
-    const finalPrice = createdOrder ?
-        (createdOrder.totalPrice > 0 ? createdOrder.totalPrice : currentTotal) :
-        currentTotal;
+    const finalPrice = createdOrder && createdOrder.totalPrice > 0
+        ? createdOrder.totalPrice
+        : currentTotal;
 
-    // --- ВИЗУАЛ ---
+    // РАСЧЕТ РАЗМЕРА СИДЕНИЙ
     const calculateSeatSize = () => {
         if (gridSize.cols > 45) return 25;
         if (gridSize.cols > 40) return 36;
@@ -240,14 +282,9 @@ const SessionPage = () => {
         return 45;
     };
     const seatSize = calculateSeatSize();
-    const fontSize = seatSize < 25 ? '0.6rem' : '0.8rem';
-    const borderRadius = seatSize < 25 ? '3px' : '6px';
-
-    if (loading) return <div style={{color:'white', textAlign:'center', marginTop:'100px'}}>Загрузка...</div>;
 
     return (
         <div style={{ color: 'white', minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '90px', fontFamily: '"Segoe UI", sans-serif' }}>
-
             <Navbar />
             {toast && <Toast message={toast.message} type={toast.type} />}
 
@@ -284,6 +321,19 @@ const SessionPage = () => {
                         }}>
                             Ряд {tooltip.seat.rowIndex + 1} • Место {tooltip.seat.seatNumber}
                         </div>
+                        {tooltip.seat.type === 'VIP' && (
+                            <div style={{
+                                background: 'linear-gradient(135deg, #ffd700, #ff9900)',
+                                color: '#000',
+                                fontSize: '0.7rem',
+                                fontWeight: 'bold',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                marginLeft: '8px'
+                            }}>
+                                VIP
+                            </div>
+                        )}
                     </div>
 
                     <div style={{
@@ -304,7 +354,7 @@ const SessionPage = () => {
                         <span style={{
                             fontSize: '1.1rem',
                             fontWeight: '900',
-                            color: '#ffffff',
+                            color: tooltip.seat.type === 'VIP' ? '#ffd700' : '#ffffff',
                             whiteSpace: 'nowrap'
                         }}>
                             {tooltip.seat.price} ₽
@@ -371,13 +421,85 @@ const SessionPage = () => {
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: `repeat(${gridSize.cols}, ${seatSize}px)`,
-                    gap: '6px'
+                    gap: '6px',
+                    position: 'relative'
                 }}>
                     {seats.map(seat => {
-                        const isSelected = selectedSeatIds.includes(seat.id);
+                        const isInMyOrder = createdOrder && createdOrder.seatIds && createdOrder.seatIds.includes(seat.id);
+                        const isSelected = effectiveSeatIds.includes(seat.id);
+                        const isMyBooking = (seat.isBooked && isSelected) || isInMyOrder;
                         const isVip = seat.type === 'VIP';
-                        const isDimmed = createdOrder && !isSelected;
-                        const isMyBooking = seat.isBooked && isSelected;
+                        const isDimmed = createdOrder && !isInMyOrder;
+
+                        // Определяем стиль для VIP мест
+                        let seatStyle = {
+                            gridRowStart: seat.rowIndex + 1,
+                            gridColumnStart: seat.colIndex + 1,
+                            width: `${seatSize}px`,
+                            height: `${seatSize}px`,
+                            fontSize: seatSize < 25 ? '0.6rem' : '0.8rem',
+                            borderRadius: seatSize < 25 ? '3px' : '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            userSelect: 'none',
+                            transition: 'all 0.2s',
+                            cursor: (seat.isBooked && !isMyBooking) || isDimmed ? 'default' : 'pointer',
+                            opacity: isMyBooking ? 1 : (isDimmed ? 0.3 : (seat.isBooked ? 0.6 : 1)),
+                        };
+
+                        // Цвета для разных состояний
+                        if (isMyBooking) {
+                            // Мое забронированное место
+                            seatStyle.background = '#e50914';
+                            seatStyle.border = '2px solid #fff';
+                            seatStyle.boxShadow = '0 0 15px #e50914';
+                            seatStyle.color = '#fff';
+                        } else if (seat.isBooked) {
+                            // Занятое место
+                            seatStyle.background = '#555';
+                            seatStyle.border = '1px solid #777';
+                            seatStyle.color = '#bbb';
+                        } else if (isSelected) {
+                            // Выбранное место
+                            seatStyle.background = isVip
+                                ? 'linear-gradient(135deg, #e50914, #ff4444)'
+                                : '#e50914';
+                            seatStyle.border = '2px solid white';
+                            seatStyle.boxShadow = isVip
+                                ? '0 0 20px rgba(255, 215, 0, 0.8)'
+                                : '0 0 15px #e50914';
+                            seatStyle.color = '#fff';
+                        } else if (isVip) {
+                            // Свободное VIP место
+                            seatStyle.background = 'linear-gradient(135deg, #ffd700, #ff9900)';
+                            seatStyle.border = '2px solid #ff9900';
+                            seatStyle.boxShadow = '0 4px 10px rgba(255, 215, 0, 0.4)';
+                            seatStyle.color = '#000';
+                        } else {
+                            // Свободное стандартное место
+                            seatStyle.background = '#2ecc71';
+                            seatStyle.border = 'none';
+                            seatStyle.color = '#fff';
+                        }
+
+                        // Специальный значок для VIP
+                        const seatContent = isVip && seatSize > 30 ? (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{ fontSize: seatSize < 40 ? '0.6rem' : '0.7rem', color: isSelected || isMyBooking ? '#fff' : '#000', fontWeight: 'bold' }}>
+                                    VIP
+                                </div>
+                                <div style={{ fontSize: seatSize < 40 ? '0.8rem' : '0.9rem', color: isSelected || isMyBooking ? '#fff' : '#333' }}>
+                                    {seat.seatNumber}
+                                </div>
+                            </div>
+                        ) : seat.seatNumber;
 
                         return (
                             <div
@@ -385,43 +507,54 @@ const SessionPage = () => {
                                 onClick={() => handleSeatClick(seat)}
                                 onMouseEnter={(e) => handleMouseEnter(e, seat)}
                                 onMouseLeave={handleMouseLeave}
-                                style={{
-                                    gridRowStart: seat.rowIndex + 1,
-                                    gridColumnStart: seat.colIndex + 1,
-                                    width: `${seatSize}px`,
-                                    height: `${seatSize}px`,
-                                    fontSize: fontSize,
-                                    borderRadius: borderRadius,
-
-                                    background: isMyBooking
-                                        ? '#e50914'
-                                        : (seat.isBooked
-                                            ? '#555'
-                                            : (isSelected ? '#e50914' : (isVip ? '#ffd700' : '#2ecc71'))),
-
-                                    border: isMyBooking
-                                        ? '2px solid #fff'
-                                        : (seat.isBooked ? '1px solid #777' : (isSelected ? '2px solid white' : 'none')),
-
-                                    opacity: isMyBooking ? 1 : (isDimmed ? 0.3 : (seat.isBooked ? 0.6 : 1)),
-
-                                    cursor: (seat.isBooked && !isMyBooking) || isDimmed ? 'default' : 'pointer',
-
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: '#121212', fontWeight: 'bold', userSelect: 'none',
-                                    boxShadow: isSelected ? '0 0 15px #e50914' : 'none',
-                                    transition: 'all 0.2s',
-                                }}
+                                style={seatStyle}
+                                title={isVip ? `VIP место ${seat.seatNumber}` : `Место ${seat.seatNumber}`}
                             >
-                                {seat.seatNumber}
+                                {seatContent}
                             </div>
                         );
                     })}
                 </div>
+
+                {/* ЛЕГЕНДА */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '20px',
+                    marginTop: '40px',
+                    flexWrap: 'wrap',
+                    padding: '20px',
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '20px', height: '20px', background: '#2ecc71', borderRadius: '4px' }}></div>
+                        <span style={{ color: '#ccc', fontSize: '0.9rem' }}>Свободно</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                            width: '20px',
+                            height: '20px',
+                            background: 'linear-gradient(135deg, #ffd700, #ff9900)',
+                            borderRadius: '4px',
+                            border: '1px solid #ff9900'
+                        }}></div>
+                        <span style={{ color: '#ccc', fontSize: '0.9rem' }}>VIP</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '20px', height: '20px', background: '#e50914', borderRadius: '4px' }}></div>
+                        <span style={{ color: '#ccc', fontSize: '0.9rem' }}>Выбрано</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '20px', height: '20px', background: '#555', borderRadius: '4px' }}></div>
+                        <span style={{ color: '#ccc', fontSize: '0.9rem' }}>Занято</span>
+                    </div>
+                </div>
             </div>
 
-            {/* --- НИЖНЯЯ ПАНЕЛЬ --- */}
-            {selectedSeatIds.length > 0 && (
+            {/* НИЖНЯЯ ПАНЕЛЬ */}
+            {effectiveSeatIds.length > 0 && (
                 <div style={{
                     position: 'fixed', bottom: 0, width: '100%',
                     background: 'rgba(20, 20, 20, 0.95)',
@@ -438,7 +571,7 @@ const SessionPage = () => {
                         display: 'flex',
                         gap: '15px',
                         alignItems: 'center',
-                        maxWidth: '60%',
+                        maxWidth: '70%',
                         overflowX: 'auto',
                         paddingBottom: '5px',
                         flexWrap: 'wrap'
@@ -468,54 +601,119 @@ const SessionPage = () => {
                             maxHeight: '60px',
                             overflowY: 'auto'
                         }}>
-                            {seats.filter(s => selectedSeatIds.includes(s.id)).map(s => (
+                            {seats.filter(s => effectiveSeatIds.includes(s.id)).map(s => (
                                 <span key={s.id} style={{
-                                    background: '#333', color: 'white',
-                                    padding: '6px 12px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '500',
-                                    border: s.type === 'VIP' ? '1px solid #ffd700' : '1px solid #444',
-                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                                    whiteSpace: 'nowrap',
-                                    flexShrink: 0
+                                    background: s.type === 'VIP'
+                                        ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 153, 0, 0.2))'
+                                        : '#252525',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    borderLeft: s.type === 'VIP' ? '4px solid #ffd700' : '4px solid #e50914',
+                                    fontSize: '0.85rem',
+                                    color: s.type === 'VIP' ? '#ffd700' : '#ccc',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
                                 }}>
-                                    <span style={{color: '#aaa', fontSize: '0.8rem'}}>Ряд</span> {s.rowIndex + 1} <span style={{color: '#555'}}>|</span> <span style={{color: '#aaa', fontSize: '0.8rem'}}>Место</span> {s.seatNumber}
+                                    {s.type === 'VIP' && (
+                                        <span style={{
+                                            background: '#ffd700',
+                                            color: '#000',
+                                            fontSize: '0.6rem',
+                                            padding: '1px 4px',
+                                            borderRadius: '3px',
+                                            fontWeight: 'bold'
+                                        }}>
+                                            VIP
+                                        </span>
+                                    )}
+                                    <span>
+                                        Ряд <b style={{color: 'white'}}>{s.rowIndex + 1}</b>
+                                        <span style={{margin:'0 5px', opacity:0.3}}>|</span>
+                                        Место <b style={{color: 'white'}}>{s.seatNumber}</b>
+                                    </span>
+                                    <span style={{ marginLeft: '8px', color: s.type === 'VIP' ? '#ffd700' : '#aaa' }}>
+                                        {s.price} ₽
+                                    </span>
                                 </span>
                             ))}
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '30px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '2px' }}>Итого к оплате</div>
-                            <div style={{ fontSize: '1.6rem', fontWeight: '700', color: 'white', lineHeight: '1' }}>
-                                {finalPrice}&nbsp;₽
+                            <div style={{ fontSize: '0.9rem', color: '#aaa' }}>Итого:</div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#fff' }}>
+                                {finalPrice} ₽
                             </div>
                         </div>
 
-                        {/* КНОПКИ */}
                         <div style={{ display: 'flex', gap: '15px' }}>
-                            {createdOrder && (
-                                <button onClick={handleCancelOrder} style={{
-                                    background: 'transparent', border: '1px solid #555', color: '#ccc',
-                                    padding: '12px 25px', fontSize: '1rem', borderRadius: '30px', cursor: 'pointer'
-                                }}>Отмена</button>
+                            {createdOrder ? (
+                                <>
+                                    <button
+                                        onClick={handlePay}
+                                        disabled={isProcessing}
+                                        style={{
+                                            background: '#f39c12',
+                                            color: 'black',
+                                            border:'none',
+                                            padding:'12px 30px',
+                                            borderRadius:'8px',
+                                            cursor: isProcessing ? 'wait' : 'pointer',
+                                            fontWeight:'bold',
+                                            fontSize:'1rem',
+                                            minWidth: '150px'
+                                        }}
+                                    >
+                                        {isProcessing ? '...' : `Оплатить ${finalPrice} ₽`}
+                                    </button>
+                                    <button
+                                        onClick={handleCancelOrder}
+                                        disabled={isProcessing}
+                                        style={{
+                                            background: 'transparent',
+                                            color: '#aaa',
+                                            border:'1px solid #555',
+                                            padding:'12px 20px',
+                                            borderRadius:'8px',
+                                            cursor:'pointer',
+                                            fontSize:'0.9rem'
+                                        }}
+                                    >
+                                        Отменить
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={handleBuy}
+                                    disabled={isProcessing}
+                                    style={{
+                                        background: '#e50914',
+                                        color: 'white',
+                                        border:'none',
+                                        padding:'14px 40px',
+                                        borderRadius:'8px',
+                                        cursor: 'pointer',
+                                        fontWeight:'bold',
+                                        fontSize:'1.1rem',
+                                        boxShadow: '0 4px 15px rgba(229, 9, 20, 0.4)'
+                                    }}
+                                >
+                                    {isProcessing ? '...' : 'Забронировать'}
+                                </button>
                             )}
-                            <button
-                                onClick={createdOrder ? handlePay : handleBuy}
-                                disabled={isProcessing}
-                                style={{
-                                    background: createdOrder ? '#2ecc71' : 'linear-gradient(135deg, #e50914 0%, #ff4f4f 100%)',
-                                    color: 'white', border: 'none', padding: '12px 40px', fontSize: '1.1rem', fontWeight: '600',
-                                    borderRadius: '30px', cursor: 'pointer', minWidth: '200px'
-                                }}
-                            >
-                                {isProcessing ? '...' : (createdOrder ? 'Оплатить' : 'Забронировать')}
-                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <style>{`@keyframes slideUp {from{transform:translateY(100%);}to{transform:translateY(0);}}`}</style>
+            <style>{`
+                @keyframes slideUp {
+                    from { transform: translateY(100%); }
+                    to { transform: translateY(0); }
+                }
+            `}</style>
         </div>
     );
 };

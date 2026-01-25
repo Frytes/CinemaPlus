@@ -29,10 +29,10 @@ public class SessionService {
     private final HallRepository hallRepository;
     private final SessionMapper sessionMapper;
 
-    @Value("${cinema.default-ads-minutes:15}")
+    @Value("${cinema.rules.default-ads-minutes:15}")
     private int defaultAds;
 
-    @Value("${cinema.default-cleanup-minutes:20}")
+    @Value("${cinema.rules.default-cleanup-minutes:20}")
     private int defaultCleanup;
 
     @Transactional
@@ -61,12 +61,13 @@ public class SessionService {
             throw new IllegalArgumentException("В это время зал занят другим сеансом!");
         }
 
-        Session session = new Session();
-        session.setMovie(movie);
-        session.setHall(hall);
-        session.setStartTime(start);
-        session.setEndTime(end);
-        session.setBasePrice(request.basePrice());
+        Session session = Session.builder()
+                .movie(movie)
+                .hall(hall)
+                .startTime(start)
+                .endTime(end)
+                .basePrice(request.basePrice())
+                .build();
 
         sessionRepository.save(session);
     }

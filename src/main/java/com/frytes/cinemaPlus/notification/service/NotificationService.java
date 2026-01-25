@@ -67,8 +67,24 @@ public class NotificationService {
 
 
     @KafkaListener(topics = "user-events-topic", groupId = "notification-group")
-    public void handleUserRegistered(UserRegisteredEvent event) {
-        String html = String.format("<h1>Добро пожаловать, %s!</h1><p>Регистрация прошла успешно.</p>", event.username());
-        emailService.sendHtmlEmail(event.email(), "Добро пожаловать в CinemaPlus! 👋", html);
+    public void handleUserRegistered(String message) {
+        try {
+            UserRegisteredEvent event = objectMapper.readValue(message, UserRegisteredEvent.class);
+
+            log.info("👤 Обработка регистрации пользователя: {}", event.email());
+
+            String html = templateService.createWelcomeEmail(event);
+
+            emailService.sendHtmlEmail(
+                    event.email(),
+                    "Добро пожаловать в CinemaPlus! 🎬",
+                    html
+            );
+
+            log.info("✅ Приветственное письмо отправлено на: {}", event.email());
+
+        } catch (Exception e) {
+            log.error("❌ Ошибка отправки приветственного письма: {}", e.getMessage());
+        }
     }
 }
