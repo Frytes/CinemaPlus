@@ -339,7 +339,7 @@ const MyTicketsPage = () => {
                     </div>
                 )}
 
-                {orders.length === 0 && (
+                {pendingOrders.length === 0 && activeOrders.length === 0 && archiveOrders.length === 0 && (
                     <div style={emptyStateStyle}>
                         <div style={emptyTitleStyle}>🎬 История пуста</div>
                         <div style={emptyTextStyle}>

@@ -103,7 +103,7 @@ const SessionPage = () => {
     // --- 3. ТАЙМЕР ---
     useEffect(() => {
         let timer = null;
-        const ORDER_TTL_SECONDS = 600;
+        const ORDER_TTL_SECONDS = 60;
 
         if (createdOrder && createdOrder.createdAt) {
             const createdTime = new Date(createdOrder.createdAt).getTime();

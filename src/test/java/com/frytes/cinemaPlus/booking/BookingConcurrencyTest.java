@@ -19,11 +19,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -65,14 +62,13 @@ class BookingConcurrencyTest extends BaseIntegrationTest{
     void shouldPreventDoubleBooking_WhenMultipleUsersTryToBuySameSeat() throws InterruptedException {
         Hall hall = new Hall(null, "Race Hall", 10, 10, new ArrayList<>());
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
-        hall.addSeat(seat);
-        hallRepository.save(hall);
-
         String longDescription = "Это очень длинное описание фильма, которое должно быть больше 100 символов, чтобы пройти проверку базы данных Postgres. Надеюсь, этого текста достаточно для теста.";
         Movie movie = new Movie(null, "Race Movie", longDescription, 120, "url", 2024, 9.0, 12, "Genre");
-        movieRepository.save(movie);
-
         Session session = new Session(null, movie, hall, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), BigDecimal.valueOf(100));
+
+        hall.addSeat(seat);
+        hallRepository.save(hall);
+        movieRepository.save(movie);
         sessionRepository.save(session);
 
         Long sessionId = session.getId();

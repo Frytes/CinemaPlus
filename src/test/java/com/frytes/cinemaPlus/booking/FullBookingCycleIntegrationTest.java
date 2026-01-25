@@ -44,7 +44,6 @@ class FullBookingCycleIntegrationTest extends BaseIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
-    // Repositories setup
     @Autowired private UserRepository userRepository;
     @Autowired private MovieRepository movieRepository;
     @Autowired private HallRepository hallRepository;
@@ -59,20 +58,18 @@ class FullBookingCycleIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         User user = new User(null, "buyer", "buyer@test.com", "password123", Role.USER);
-        userRepository.save(user);
         token = "Bearer " + jwtService.generateToken(user);
 
         String longDescription = "Это очень длинное описание фильма, которое должно быть больше 100 символов, чтобы пройти проверку базы данных Postgres. Надеюсь, этого текста достаточно для теста.";
         Movie movie = new Movie(null, "E2E Movie", longDescription, 120, "https://example.com/poster.jpg", 2024, 9.0, 12, "Genre");
-        movieRepository.save(movie);
-
         Hall hall = new Hall(null, "E2E Hall", 5, 5, new ArrayList<>());
-
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
+        Session session = new Session(null, movie, hall, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(2), BigDecimal.valueOf(500));
+
+        userRepository.save(user);
+        movieRepository.save(movie);
         hall.addSeat(seat);
         hallRepository.save(hall);
-
-        Session session = new Session(null, movie, hall, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(2), BigDecimal.valueOf(500));
         sessionRepository.save(session);
 
         this.sessionId = session.getId();

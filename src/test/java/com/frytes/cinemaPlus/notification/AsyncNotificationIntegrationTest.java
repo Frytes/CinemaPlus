@@ -3,8 +3,6 @@ package com.frytes.cinemaPlus.notification;
 import com.frytes.cinemaPlus.BaseIntegrationTest;
 import com.frytes.cinemaPlus.booking.dto.BookingRequest;
 import com.frytes.cinemaPlus.booking.entity.Order;
-import com.frytes.cinemaPlus.booking.entity.Ticket;
-import com.frytes.cinemaPlus.booking.entity.enumps.OrderStatus;
 import com.frytes.cinemaPlus.booking.repository.OrderRepository;
 import com.frytes.cinemaPlus.booking.service.BookingService;
 import com.frytes.cinemaPlus.booking.service.PaymentService;
@@ -38,9 +36,7 @@ import java.util.List;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @DisplayName("📧 Интеграционный тест асинхронных уведомлений")
 class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
@@ -61,13 +57,14 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
     void setUpMocks() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        paymentService.setFailProbability(0);
+        paymentService.setDelayMs(0);
     }
 
     @Test
     @DisplayName("После успешной оплаты должно отправиться письмо (через Kafka)")
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldSendEmail_WhenOrderIsPaid() {
-        paymentService.setFailProbability(0);
         //GIVEN
         User user = new User(null, "testuser", "test@email.com", "password123", Role.USER);
         Hall hall = new Hall(null, "Test Hall", 5, 5, new ArrayList<>());
