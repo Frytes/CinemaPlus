@@ -16,6 +16,7 @@ import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
+@Setter
 @Slf4j
 @Service
 @RequiredArgsConstructor

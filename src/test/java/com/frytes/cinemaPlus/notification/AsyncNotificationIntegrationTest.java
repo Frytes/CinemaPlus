@@ -74,7 +74,7 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldSendEmail_WhenOrderIsPaid() {
         log.info("=== НАЧАЛО ТЕСТА: shouldSendEmail_WhenOrderIsPaid ===");
-
+        paymentService.setFailProbability(0);
         //GIVEN
         log.info("1. Создаем тестовые данные...");
 
