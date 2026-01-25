@@ -49,6 +49,7 @@ public class PaymentService {
     private int failProbability;
 
     @SneakyThrows
+    @Transactional
     public boolean processPayment(Long orderId) {
 
         if (delayMs > 0) {

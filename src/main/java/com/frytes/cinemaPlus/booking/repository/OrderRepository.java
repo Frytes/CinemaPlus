@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
     @EntityGraph(attributePaths = {"tickets", "tickets.session"})
     Optional<Order> findTopByUserIdAndStatusOrderByCreatedAtDesc(Long id, OrderStatus orderStatus);
+
     @EntityGraph(attributePaths = {
             "tickets",
             "tickets.seat",
@@ -20,7 +22,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     })
     List<Order> findAllByUserIdOrderByCreatedAtDesc(Long userId);
 
-    @EntityGraph(attributePaths = {"tickets", "tickets.seat"})
+    @EntityGraph(attributePaths = {
+            "tickets",
+            "tickets.seat",
+            "tickets.session",
+            "tickets.session.movie",
+            "tickets.session.hall"
+    })
     Optional<Order> findWithDetailsById(Long id);
 
 }
