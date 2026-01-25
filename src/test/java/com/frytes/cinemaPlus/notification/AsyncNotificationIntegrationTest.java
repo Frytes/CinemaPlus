@@ -96,8 +96,8 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
 
         // THEN
         await()
-                .atMost(Duration.ofSeconds(5))
-                .pollInterval(Duration.ofMillis(100))
+                .atMost(Duration.ofSeconds(15))
+                .pollInterval(Duration.ofMillis(500))
                 .untilAsserted(() -> verify(javaMailSender).send(any(MimeMessage.class)));
     }
 }

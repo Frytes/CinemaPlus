@@ -14,6 +14,7 @@ import com.frytes.cinemaPlus.content.entity.Movie;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
+import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
 import com.frytes.cinemaPlus.repository.SeatRepository;
 import com.frytes.cinemaPlus.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
@@ -45,7 +46,7 @@ class BookingServiceUnitTest {
     @Mock private BookingLockService bookingLockService;
     @Mock private PriceCalculator priceCalculator;
     @Mock private PricingRulesService pricingRulesService;
-
+    @Mock private SocketNotificationService socketService;
 
     @InjectMocks
     private BookingService bookingService;
