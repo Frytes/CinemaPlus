@@ -69,24 +69,20 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
     void shouldSendEmail_WhenOrderIsPaid() {
         //GIVEN
         User user = new User(null, "testuser", "test@email.com", "password123", Role.USER);
-        userRepository.save(user);
-
         Hall hall = new Hall(null, "Test Hall", 5, 5, new ArrayList<>());
         Seat seat = new Seat(null, hall, 1, 1, SeatType.STANDARD, "A1");
         hall.addSeat(seat);
-        hallRepository.save(hall);
-
         Movie movie = new Movie(null, "Test Movie",  "Это очень длинное описание фильма, которое должно быть больше 100 символов, чтобы пройти проверку базы данных Postgres. Надеюсь, этого текста достаточно для теста.", 120, "url", 2024, 8.0, 12, "Genre");
-        movieRepository.save(movie);
-
         Session session = new Session(null, movie, hall, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), BigDecimal.valueOf(100));
+
+        userRepository.save(user);
+        hallRepository.save(hall);
+        movieRepository.save(movie);
         sessionRepository.save(session);
 
         BookingRequest bookingRequest = new BookingRequest(session.getId(), List.of(seat.getId()));
         Order order = bookingService.createBooking(bookingRequest, user);
-
         Long orderId = order.getId();
-
 
         // WHEN
         paymentService.processPayment(orderId);

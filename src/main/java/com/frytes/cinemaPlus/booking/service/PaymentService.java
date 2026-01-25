@@ -69,7 +69,6 @@ public class PaymentService {
 
         if (paymentSuccess) {
             order.setStatus(OrderStatus.PAID);
-            orderRepository.save(order);
 
             String movieTitle = "Unknown";
             String hallName = "Unknown Hall";
@@ -139,7 +138,6 @@ public class PaymentService {
             order.getTickets().clear();
             order.setStatus(OrderStatus.CANCELLED);
 
-            orderRepository.save(order);
             return false;
         }
     }
