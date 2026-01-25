@@ -35,7 +35,10 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Ticket> tickets = new ArrayList<>();
 
     @Column(name = "total_price", nullable = false)

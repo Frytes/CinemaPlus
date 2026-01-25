@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode"; // ⚠️ ВАЖНО: фигурные скобки обязательны для v4
+import { jwtDecode } from "jwt-decode";
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -15,13 +15,8 @@ const Navbar = () => {
 
         if (token) {
             try {
-                // Пытаемся декодировать
                 const decoded = jwtDecode(token);
 
-                // Логи для отладки (смотри в консоль браузера F12)
-                console.log("Token decoded successfully:", decoded);
-
-                // "sub" - это email (subject) из нашего Java JwtService
                 setUserEmail(decoded.sub || '');
 
                 if (decoded.role === 'ADMIN') {
@@ -29,7 +24,6 @@ const Navbar = () => {
                 }
             } catch (e) {
                 console.error("Ошибка декодирования токена:", e);
-                // Если токен битый — удаляем его, чтобы не путать систему
                 localStorage.removeItem('token');
                 setUserEmail('');
             }

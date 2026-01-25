@@ -64,18 +64,29 @@ jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000
 
-#Настройки
+
 cinema:
-  default-ads-minutes: 15       # Дефолтные значения рекламы
-  default-cleanup-minutes: 20   # Дефолтные значения уборки
-  pricing:
-    base-price-morning: 250     # Базовая цена утром
-    base-price-evening: 450     # Базовая цена вечером
-    surcharge_red_hall: 100     # Надбавка за красный зал
-    surcharge_blue_hall: 100    # Надбавка за синий зал
-    surcharge_green_hall: 0     # Надбавка за зеленый зал
-    vip-surcharge: 200          # Добавочная цена за VIP место
-  lock-duration: 10             # Время блокировки заказа
-  payment:
-    delay-ms: 1000              # Длительность задержки банка при оплате заказа
-    fail-probability: 10        # Вероятность отказа в % (0-100)
+  # 1. Глобальные правила (Используются при реальной работе приложения)
+  rules:
+    lock-duration-minutes: 10     # Сколько держится бронь в Redis (BookingLockService)
+    default-ads-minutes: 15       # Дефолт длительности рекламы (SessionService)
+    default-cleanup-minutes: 20   # Дефолт длительности уборки (SessionService)
+
+  # 2. Настройки для DataInitializer (Влияют ТОЛЬКО на генерацию демо-данных при старте)
+  # Эти цены "запекаются" в базу данных как base_price сеанса
+  demo-seeding:
+    price-generation:
+      base-morning: 250           # Цена для сеансов до 14:00
+      base-evening: 450           # Цена для сеансов после 14:00
+
+      # Набавка к базовой цене сеанса в зависимости от крутости зала
+      hall-surcharges:
+        red: 100                  # Красный зал
+        blue: 100                 # Синий зал
+        green: 0                  # Зеленый зал
+
+  # 3. Настройки эмуляторов (Для тестов и демонстрации)
+  mock:
+    payment:
+      delay-ms: 1000              # Имитация задержки банка
+      fail-probability: 80        # Вероятность отказа (0-100%)

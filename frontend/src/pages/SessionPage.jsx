@@ -68,16 +68,11 @@ const SessionPage = () => {
     useEffect(() => {
         const client = new Client({
             brokerURL: 'ws://localhost:8080/ws',
-            debug: (str) => console.log('STOMP:', str),
             onConnect: () => {
-                console.log('✅ WebSocket подключен');
                 client.subscribe(`/topic/session/${id}`, (message) => {
-                    console.log('📨 Получено сообщение:', message.body);
-                    try {
-                        const body = JSON.parse(message.body);
-                        console.log('✅ Парсинг успешен:', body);
 
-                        // Обновляем статус места
+                        const body = JSON.parse(message.body);
+
                         setSeats(prevSeats => prevSeats.map(seat => {
                             if (seat.id === body.seatId) {
                                 const isBookedNow = (body.status === 'LOCKED' || body.status === 'SOLD');
@@ -86,22 +81,13 @@ const SessionPage = () => {
                             return seat;
                         }));
 
-                        // Если место заблокировано/продано и у нас нет заказа - убираем из выбранных
                         if ((body.status === 'LOCKED' || body.status === 'SOLD') && !createdOrder) {
                             setSelectedSeatIds(prev => prev.filter(sid => sid !== body.seatId));
                         }
 
-                    } catch (error) {
-                        console.error('❌ Ошибка парсинга сообщения:', error);
-                    }
-                });
+                     });
             },
-            onStompError: (frame) => {
-                console.error('❌ WebSocket ошибка:', frame.headers['message']);
-            },
-            onDisconnect: () => {
-                console.log('🔌 WebSocket отключен');
-            },
+
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
@@ -110,10 +96,9 @@ const SessionPage = () => {
         client.activate();
 
         return () => {
-            console.log('🧹 Очистка WebSocket');
             client.deactivate();
         };
-    }, [id, createdOrder]); // Добавили createdOrder в зависимости
+    }, [id, createdOrder]);
 
     // --- 3. ТАЙМЕР ---
     useEffect(() => {

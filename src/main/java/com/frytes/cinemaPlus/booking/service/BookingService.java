@@ -103,13 +103,12 @@ public class BookingService {
                         .order(order)
                         .build();
 
-                ticketRepository.save(ticket);
+
                 order.getTickets().add(ticket);
                 socketService.sendSeatUpdate(session.getId(), seat, SocketStatus.LOCKED);
             }
-            System.out.println("Order tickets: " + order.getTickets());
-            System.out.println("Order tickets size: " + (order.getTickets() != null ? order.getTickets().size() : "null"));
-            return order;
+
+            return orderRepository.save(order);
         } catch (RuntimeException e) {
 
             for (Long seatId : lockedSeats) {
