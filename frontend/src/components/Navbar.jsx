@@ -11,27 +11,30 @@ const Navbar = () => {
     const [showMenu, setShowMenu] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
 
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-
                 setUserEmail(decoded.sub || '');
 
                 if (decoded.role === 'ADMIN') {
                     setIsAdmin(true);
                 }
             } catch (e) {
-                console.error("Ошибка декодирования токена:", e);
-                localStorage.removeItem('token');
+                console.error("Ошибка токена (сброс сессии):", e);
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
                 setUserEmail('');
             }
+        } else {
+            setUserEmail('');
         }
-    }, []);
+    }, [location.pathname]);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         setUserEmail('');
         setIsAdmin(false);
         setShowMenu(false);
@@ -49,8 +52,6 @@ const Navbar = () => {
     const avatarLetter = userEmail ? userEmail.charAt(0).toUpperCase() : 'U';
     const usernameDisplay = userEmail ? userEmail.split('@')[0] : 'Guest';
     const isHomePage = location.pathname === '/';
-
-
 
     const getNavStyle = (path) => {
         if (location.pathname === path) {

@@ -5,15 +5,14 @@ import MoviePage from './pages/MoviePage';
 import HallsPage from './pages/HallsPage';
 import AdminPage from './pages/AdminPage';
 import SessionPage from './pages/SessionPage';
-import MyTicketsPage from './pages/MyTicketsPage'; // <--- НЕ ЗАБУДЬ ИМПОРТ
+import MyTicketsPage from './pages/MyTicketsPage';
 import AdminRoute from './components/AdminRoute';
 
-// Компонент для защиты приватных маршрутов (только для залогиненных)
+
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  // Если токена нет -> редирект на логин
-  return token ? children : <Navigate to="/login" replace />;
-};
+  const token = localStorage.getItem('accessToken');
+    return token ? children : <Navigate to="/login" replace />;
+  };
 
 function App() {
   return (

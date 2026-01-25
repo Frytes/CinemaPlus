@@ -1,6 +1,6 @@
 package com.frytes.cinemaPlus.users.dto;
 
-public record AuthResponse(
+public record TokenRefreshResponse (
         String accessToken,
         String refreshToken
-) {}
+){}

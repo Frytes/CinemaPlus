@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-create-refresh-tokens
+      author: frytes
+      changes:
+        - createTable:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: token
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_refresh_token_user
+                    references: users(id)
+                    deleteCascade: true
+
+        - createIndex:
+            tableName: refresh_tokens
+            indexName: idx_refresh_token_token
+            columns:
+              - column:
+                  name: token

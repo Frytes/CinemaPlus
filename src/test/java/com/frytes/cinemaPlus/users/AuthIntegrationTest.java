@@ -43,7 +43,8 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                         .content(requestJson))
 
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists());
+                .andExpect(jsonPath("$.accessToken").exists())
+                .andExpect(jsonPath("$.refreshToken").exists());
 
         User savedUser = userRepository.findByEmail("superuser@cinema.com").orElse(null);
         assertThat(savedUser).isNotNull();

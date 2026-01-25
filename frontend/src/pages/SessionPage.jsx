@@ -46,12 +46,11 @@ const SessionPage = () => {
     }, [id]);
 
     const checkPendingOrder = useCallback(async () => {
-        if (!localStorage.getItem('token')) return;
+        if (!localStorage.getItem('accessToken')) return;
         try {
             const res = await api.get(`/bookings/session/${id}/my-pending`);
             if (res.data) {
                 setCreatedOrder(res.data);
-                // Не устанавливаем selectedSeatIds - используем effectiveSeatIds
             }
         } catch (err) {
             // Игнорируем
@@ -200,7 +199,7 @@ const SessionPage = () => {
     const handleBuy = async () => {
         if (selectedSeatIds.length === 0) return;
 
-        if (!localStorage.getItem('token')) {
+        if (!localStorage.getItem('accessToken')) {
             navigate('/login');
             return;
         }

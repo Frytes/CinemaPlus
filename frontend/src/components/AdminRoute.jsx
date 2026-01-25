@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode"; //
 
 const AdminRoute = ({ children }) => {
-    const token = localStorage.getItem('token');
+     const token = localStorage.getItem('accessToken');
 
     if (!token) {
         return <Navigate to="/login" replace />;
@@ -13,7 +13,6 @@ const AdminRoute = ({ children }) => {
 
         const now = Date.now() / 1000;
         if (payload.exp < now) {
-             localStorage.removeItem('token');
              return <Navigate to="/login" replace />;
         }
 
@@ -24,7 +23,8 @@ const AdminRoute = ({ children }) => {
         }
 
     } catch (e) {
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return <Navigate to="/login" replace />;
     }
 };

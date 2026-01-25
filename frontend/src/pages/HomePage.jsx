@@ -7,7 +7,7 @@ const HomePage = () => {
     const navigate = useNavigate();
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
-    // userEmail, isAdmin, showMenu - УДАЛЯЕМ, они теперь в навбаре
+
 
     useEffect(() => {
         const fetchMovies = async () => {
@@ -27,7 +27,7 @@ const HomePage = () => {
 
     // Проверка для кнопки "Купить билет"
     const handleBuyClick = (movieId) => {
-        if (!localStorage.getItem('token')) {
+        if (!localStorage.getItem('accessToken')) {
             navigate('/login');
         } else {
             navigate(`/movie/${movieId}`);
