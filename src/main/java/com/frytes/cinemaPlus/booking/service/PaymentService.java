@@ -122,7 +122,6 @@ public class PaymentService {
                         SocketStatus.SOLD
                 );
             }
-            log.info("✅ Payment success! Outbox event saved. Order ID: {}", order.getId());
             return true;
         } else {
             for (Ticket ticket : order.getTickets()) {

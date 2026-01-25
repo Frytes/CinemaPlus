@@ -27,7 +27,6 @@ public class OutboxScheduler {
     @Transactional
     public void processOutbox(){
         List<OutboxEvent> events = outboxRepository.findAllByStatus(OutboxStatus.NEW);
-        log.info("🕒 Scheduler woke up. Found {} new events.", events.size());
         for(OutboxEvent event : events){
             try {
                 Object payloadObj = objectMapper.readValue(event.getPayload(), Object.class);
