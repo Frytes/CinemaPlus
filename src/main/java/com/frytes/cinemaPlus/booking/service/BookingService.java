@@ -69,9 +69,12 @@ public class BookingService {
                 throw new IllegalArgumentException("Место " + seat.getSeatNumber() + " не принадлежит залу этого сеанса!");
             }
         }
+        List<Long> seatsToLock = new ArrayList<>(request.seatIds());
+        Collections.sort(seatsToLock);
+
         List<Long> lockedSeats = new ArrayList<>();
         try {
-            for (Long seatId : request.seatIds()) {
+            for (Long seatId : seatsToLock) {
                 boolean success = bookingLockService.acquireLock(session.getId(), seatId, user.getId());
                 if (!success) {
                     throw new UserAlreadyExistsException("Место " + seatId + " уже выбрано другим пользователем");
