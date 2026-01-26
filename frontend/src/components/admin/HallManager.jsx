@@ -1,53 +1,243 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
 
 const HallManager = ({ showToast }) => {
-    const [form, setForm] = useState({ name: '', width: '', height: '' });
+
+    const [name, setName] = useState('');
+    const [rows, setRows] = useState(10);
+    const [cols, setCols] = useState(15);
+    const [grid, setGrid] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+
+
+    // Инициализация сетки.
+    useEffect(() => {
+        setGrid(prev => {
+            const newGrid = [];
+            for (let r = 0; r < rows; r++) {
+                const row = [];
+                for (let c = 0; c < cols; c++) {
+                    const oldCell = prev[r]?.[c];
+                    row.push(oldCell ? { ...oldCell } : { type: 'STANDARD', row: r, col: c });
+                }
+                newGrid.push(row);
+            }
+            return newGrid;
+        });
+    }, [rows, cols]);
+
+    // --- ОБРАБОТЧИКИ ---
+
+    const handleLeftClick = (r, c) => {
+        setGrid(prev => {
+            const newGrid = prev.map(row => [...row]);
+            const cell = { ...newGrid[r][c] };
+
+            if (cell.type === 'EMPTY') cell.type = 'STANDARD';
+            else if (cell.type === 'STANDARD') cell.type = 'VIP';
+            else if (cell.type === 'VIP') cell.type = 'STANDARD';
+
+            newGrid[r][c] = cell;
+            return newGrid;
+        });
+    };
+
+    // ПКМ: Удалить / Вернуть
+    const handleRightClick = (e, r, c) => {
+        e.preventDefault();
+        setGrid(prev => {
+            const newGrid = prev.map(row => [...row]);
+            const cell = { ...newGrid[r][c] };
+
+            if (cell.type === 'EMPTY') cell.type = 'STANDARD';
+            else cell.type = 'EMPTY';
+
+            newGrid[r][c] = cell;
+            return newGrid;
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+
+        const seatsPayload = [];
+
+        for (let r = 0; r < rows; r++) {
+            let seatCounter = 1;
+            for (let c = 0; c < cols; c++) {
+                const cell = grid[r][c];
+                if (cell.type !== 'EMPTY') {
+                    seatsPayload.push({
+                        row: r,
+                        col: c,
+                        type: cell.type,
+                        seatNumber: `${seatCounter}`
+                    });
+                    seatCounter++;
+                }
+            }
+        }
+
         try {
-            await api.post('/halls', form);
-            showToast('✅ Зал успешно создан!', 'success');
-            setForm({ name: '', width: '', height: '' });
+            await api.post('/halls', {
+                name,
+                width: cols,
+                height: rows,
+                seats: seatsPayload
+            });
+            showToast('Зал успешно создан!', 'success');
+            setName('');
         } catch (err) {
-            showToast(err.response?.data?.message || 'Ошибка', 'error');
+            showToast('Ошибка: ' + (err.response?.data?.message || err.message), 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // --- ВЫЧИСЛЕНИЯ ---
+    const totalSeats = grid.reduce((acc, row) =>
+        acc + row.filter(s => s.type !== 'EMPTY').length, 0
+    );
+
+    const seatSize = Math.min(Math.max(Math.floor((800 - 80) / cols), 20), 40);
+
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ marginTop: 0, borderBottom:'1px solid #333', paddingBottom:'15px' }}>🏛️ Создать новый зал</h2>
-            <InputGroup label="Название зала">
-                <input placeholder="Например: Зеленый зал" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required style={inputStyle} />
-            </InputGroup>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-                <InputGroup label="Мест в ряду (ширина)">
-                    <input type="number" value={form.width} onChange={e => setForm({...form, width: e.target.value})} required style={inputStyle} />
-                </InputGroup>
-                <InputGroup label="Рядов (высота)">
-                    <input type="number" value={form.height} onChange={e => setForm({...form, height: e.target.value})} required style={inputStyle} />
-                </InputGroup>
+        <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '30px', alignItems: 'start', height: '100%' }}>
+
+            {/* --- ЛЕВАЯ ПАНЕЛЬ --- */}
+            <div style={{ background: '#252525', padding: '25px', borderRadius: '12px', border: '1px solid #444', height: 'fit-content' }}>
+                <h3 style={{ margin: '0 0 20px 0', borderBottom:'1px solid #444', paddingBottom:'15px' }}>🏗️ Конструктор</h3>
+
+                <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:'20px'}}>
+                    <InputGroup label="Название зала">
+                        <input value={name} onChange={e => setName(e.target.value)} required style={inputStyle} placeholder="Например: IMAX Зал"/>
+                    </InputGroup>
+
+                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'15px'}}>
+                        <InputGroup label="Рядов">
+                            <input type="number" min="1" max="30" value={rows} onChange={e => setRows(Number(e.target.value))} style={inputStyle}/>
+                        </InputGroup>
+                        <InputGroup label="Мест в ряду">
+                            <input type="number" min="1" max="40" value={cols} onChange={e => setCols(Number(e.target.value))} style={inputStyle}/>
+                        </InputGroup>
+                    </div>
+
+                    <div style={{background:'rgba(255,255,255,0.05)', padding:'15px', borderRadius:'8px'}}>
+                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'10px', fontSize:'1.1rem'}}>
+                            <span style={{color:'#aaa'}}>Всего мест:</span>
+                            <strong style={{color:'#e50914'}}>{totalSeats}</strong>
+                        </div>
+
+                        <p style={{margin:'10px 0 5px', fontSize:'0.8rem', color:'#888', textTransform:'uppercase'}}>Управление:</p>
+                        <ul style={{margin:0, paddingLeft:'20px', fontSize:'0.85rem', color:'#ccc', lineHeight:'1.6'}}>
+                            <li>🖱️ <strong>ЛКМ:</strong> Стандарт ↔ VIP</li>
+                            <li>🖱️ <strong>ПКМ:</strong> Удалить место (проход)</li>
+                        </ul>
+                    </div>
+
+                    <div style={{display:'flex', gap:'10px', justifyContent:'center', fontSize:'0.8rem', color:'#aaa'}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
+                            <div style={{width:'15px', height:'15px', background:'#2ecc71', borderRadius:'3px'}}></div> Std
+                        </div>
+                        <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
+                            <div style={{width:'15px', height:'15px', background:'linear-gradient(135deg, #ffd700, #ff9900)', borderRadius:'3px'}}></div> VIP
+                        </div>
+                        <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
+                            <div style={{width:'15px', height:'15px', border:'1px dashed #555', borderRadius:'3px'}}></div> Пусто
+                        </div>
+                    </div>
+
+                    <button type="submit" disabled={loading || !name} style={submitButtonStyle}>
+                        {loading ? 'Сохранение...' : 'СОХРАНИТЬ ЗАЛ'}
+                    </button>
+                </form>
             </div>
-            <button type="submit" style={submitButtonStyle}>Создать зал</button>
-        </form>
+
+            {/* --- ПРАВАЯ ПАНЕЛЬ (ПРЕВЬЮ) --- */}
+            <div style={{
+                background: '#1a1a1a',
+                padding: '30px',
+                borderRadius: '12px',
+                border: '1px solid #333',
+                minHeight: '600px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                overflowX: 'auto'
+            }}>
+                <div style={{width:'60%', height:'8px', background: 'linear-gradient(to right, transparent, #555, transparent)', borderRadius:'4px', marginBottom:'40px', boxShadow:'0 0 20px rgba(255,255,255,0.1)'}}></div>
+
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                    {grid.map((row, rIndex) => {
+                        const activeCount = row.filter(s => s.type !== 'EMPTY').length;
+
+                        return (
+                            <div key={rIndex} style={{ display:'flex', alignItems:'center', gap:'15px' }}>
+                                <span style={rowLabelStyle}>{rIndex + 1}</span>
+
+                                <div style={{ display:'flex', gap:'4px' }}>
+                                    {row.map((cell, cIndex) => (
+                                        <div
+                                            key={`${rIndex}-${cIndex}`}
+
+                                            onMouseDown={(e) => {
+                                                if (e.button === 0) handleLeftClick(rIndex, cIndex);
+                                                if (e.button === 2) handleRightClick(e, rIndex, cIndex);
+                                            }}
+                                            onContextMenu={(e) => e.preventDefault()}
+                                            title={`Ряд ${rIndex+1}, Место ${cIndex+1}`}
+                                            style={{
+                                                width: `${seatSize}px`,
+                                                height: `${seatSize}px`,
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: seatSize < 25 ? '0' : '0.6rem',
+                                                fontWeight: 'bold',
+                                                userSelect: 'none',
+                                                transition: 'all 0.1s',
+                                                ...getSeatStyle(cell.type)
+                                            }}
+                                        >
+                                            {cell.type === 'VIP' && seatSize > 20 && 'V'}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <span style={rowLabelStyle}>{rIndex + 1}</span>
+                                <span style={{...rowLabelStyle, color: '#e50914', width: '30px', textAlign:'right', fontSize:'0.75rem'}}>
+                                    {activeCount}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
     );
 };
 
+// --- СТИЛИ ---
+const getSeatStyle = (type) => {
+    switch (type) {
+        case 'VIP': return { background: 'linear-gradient(135deg, #ffd700, #ff9900)', border: '1px solid #ff9900', color: '#000', boxShadow: '0 0 5px rgba(255, 215, 0, 0.4)' };
+        case 'STANDARD': return { background: '#2ecc71', border: '1px solid #27ae60', color: 'transparent' };
+        default: return { background: 'transparent', border: '1px dashed #333', color: 'transparent', opacity: 0.3 };
+    }
+};
+
+const rowLabelStyle = { color: '#666', fontSize: '0.8rem', width: '20px', textAlign: 'center', fontWeight: 'bold', userSelect: 'none' };
 const InputGroup = ({label, children}) => (
     <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
         <label style={{fontSize:'0.85rem', color:'#aaa', fontWeight:'500'}}>{label}</label>
         {children}
     </div>
 );
-const inputStyle = {
-    padding: '12px', background: '#333', border: '1px solid #444',
-    color: 'white', borderRadius: '6px', width: '100%', fontSize:'1rem', outline:'none'
-};
-const submitButtonStyle = {
-    padding: '16px', background: '#e50914', color: 'white', border: 'none',
-    borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer',
-    marginTop: '10px', textTransform:'uppercase', letterSpacing:'1px', width: '100%'
-};
+const inputStyle = { padding: '12px', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '6px', width: '100%', outline:'none' };
+const submitButtonStyle = { padding: '16px', background: '#e50914', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' };
 
 export default HallManager;

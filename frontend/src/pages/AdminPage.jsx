@@ -28,18 +28,30 @@ const AdminPage = () => {
     };
 
     return (
-        <div style={{ width: '100%', minHeight: '100vh', color: '#e0e0e0', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ width: '100%', minHeight: '100vh', color: '#e0e0e0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Navbar />
             {toast && <Toast message={toast.message} type={toast.type} />}
 
-            <div style={{ display: 'flex', flexGrow: 1, marginTop: '76px' }}>
+            <div style={{ display: 'flex', flexGrow: 1, marginTop: '76px', height: 'calc(100vh - 76px)' }}>
                 <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-                <div style={{ marginLeft: '260px', padding: '40px', width: '100%', background: '#0a0a0a' }}>
+                {/* ОСНОВНОЙ КОНТЕНТ */}
+                <div style={{
+                    marginLeft: '260px',
+                    padding: '30px',
+                    width: '100%',
+                    background: '#0a0a0a',
+                    overflowY: 'auto'
+                }}>
                     <div style={{
-                        background: '#181818', padding: '30px', borderRadius: '16px',
-                        border: '1px solid #2a2a2a', boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
-                        maxWidth: '1100px', margin: '0 auto', minHeight: '600px'
+                        background: '#181818',
+                        padding: '30px',
+                        borderRadius: '16px',
+                        border: '1px solid #2a2a2a',
+                        boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
+                        maxWidth: activeTab === 'halls' ? '100%' : '1200px',
+                        margin: '0 auto',
+                        minHeight: '100%' /
                     }}>
                         {renderContent()}
                     </div>

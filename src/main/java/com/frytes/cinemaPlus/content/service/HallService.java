@@ -28,15 +28,30 @@ public class HallService {
         hall.setName(request.name());
         hall.setWidth(request.width());
         hall.setHeight(request.height());
-        for (int row = 0; row < request.height(); row++) {
-            for (int col = 0; col < request.width(); col++) {
+
+        if (request.seats() != null && !request.seats().isEmpty()) {
+            for (HallRequest.SeatConfigDto seatConf : request.seats()) {
                 Seat seat = Seat.builder()
-                        .rowIndex(row)
-                        .colIndex(col)
-                        .type(SeatType.STANDARD)
-                        .seatNumber(String.format("%d-%d", row + 1, col + 1))
+                        .hall(hall)
+                        .rowIndex(seatConf.row())
+                        .colIndex(seatConf.col())
+                        .type(seatConf.type())
+                        .seatNumber(seatConf.seatNumber())
                         .build();
                 hall.addSeat(seat);
+            }
+        } else {
+            for (int row = 0; row < request.height(); row++) {
+                for (int col = 0; col < request.width(); col++) {
+                    Seat seat = Seat.builder()
+                            .hall(hall)
+                            .rowIndex(row)
+                            .colIndex(col)
+                            .type(SeatType.STANDARD)
+                            .seatNumber(String.format("%d-%d", row + 1, col + 1))
+                            .build();
+                    hall.addSeat(seat);
+                }
             }
         }
         hallRepository.save(hall);
