@@ -8,7 +8,7 @@ import com.frytes.cinemaPlus.content.dto.HallSummaryDto;
 import com.frytes.cinemaPlus.content.entity.Hall;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
-import com.frytes.cinemaPlus.repository.HallRepository;
+import com.frytes.cinemaPlus.content.repository.HallRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // <--- Добавили useLocation
 import api from '../api/axiosConfig';
 
 const AuthPage = () => {
     const navigate = useNavigate();
+    const location = useLocation(); // <--- Хук для получения текущего состояния истории
     const [isLogin, setIsLogin] = useState(true);
 
     const [email, setEmail] = useState('');
@@ -23,7 +24,6 @@ const AuthPage = () => {
 
         try {
             const response = await api.post(endpoint, payload);
-            console.log("Ответ сервера:", response.data);
 
             const accessToken = response.data.token || response.data.accessToken;
             const refreshToken = response.data.refreshToken;
@@ -36,8 +36,13 @@ const AuthPage = () => {
             localStorage.setItem('refreshToken', refreshToken);
 
             setMessage(isLogin ? 'Вход выполнен!' : 'Регистрация успешна! Вход...');
+
+            // --- ЛОГИКА ВОЗВРАТА ---
             setTimeout(() => {
-                navigate('/');
+                // Если мы пришли с какой-то страницы (например, SessionPage), возвращаемся туда
+                // Иначе идем на главную '/'
+                const origin = location.state?.from?.pathname || '/';
+                navigate(origin, { replace: true });
             }, 500);
 
         } catch (err) {

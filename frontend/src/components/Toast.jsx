@@ -10,7 +10,7 @@ const Toast = ({ message, type = 'error' }) => {
             padding: '12px 24px',
             borderRadius: '8px',
             boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-            zIndex: 1000,
+            zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
             gap: '10px',

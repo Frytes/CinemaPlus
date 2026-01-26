@@ -10,5 +10,6 @@ public record SessionDto(
         Long hallId,
         String hallName,
         LocalDateTime startTime,
+        LocalDateTime endTime,
         BigDecimal price
 ) {}

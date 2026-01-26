@@ -21,13 +21,8 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/movie/:id" element={<MoviePage />} />
       <Route path="/halls" element={<HallsPage />} />
+      <Route path="/session/:id" element={<SessionPage />} />
 
-
-      <Route path="/session/:id" element={
-          <PrivateRoute>
-              <SessionPage />
-          </PrivateRoute>
-      } />
 
       <Route path="/tickets" element={
           <PrivateRoute>
