@@ -10,7 +10,6 @@ const DashboardStats = ({ showToast }) => {
         api.get('/stats')
             .then(res => {
                 setStats(res.data);
-                showToast('Статистика загружена', 'success');
             })
             .catch(err => {
                 console.error(err);
@@ -32,9 +31,7 @@ const DashboardStats = ({ showToast }) => {
         setHoveredBar(null);
     };
 
-    const handleBarClick = (date, value) => {
-        showToast(`${date}: ${value} ₽`, 'success');
-    };
+
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
@@ -46,28 +43,24 @@ const DashboardStats = ({ showToast }) => {
                     value={`${stats.revenueToday} ₽`}
                     color="#2ecc71"
                     icon="💰"
-                    showToast={showToast}
                 />
                 <StatCard
                     title="Билетов сегодня"
                     value={stats.ticketsToday}
                     color="#3498db"
                     icon="🎟️"
-                    showToast={showToast}
                 />
                 <StatCard
                     title="Выручка (Месяц)"
                     value={`${stats.revenueMonth} ₽`}
                     color="#f1c40f"
                     icon="📅"
-                    showToast={showToast}
                 />
                 <StatCard
                     title="Пользователей"
                     value={stats.totalUsers}
                     color="#9b59b6"
                     icon="👥"
-                    showToast={showToast}
                 />
             </div>
 
@@ -102,7 +95,6 @@ const DashboardStats = ({ showToast }) => {
                                     }}
                                     onMouseEnter={() => handleBarHover(date, value, index)}
                                     onMouseLeave={handleBarLeave}
-                                    onClick={() => handleBarClick(date, value)}
                                 >
                                     <div
                                         style={{
@@ -177,9 +169,7 @@ const DashboardStats = ({ showToast }) => {
                                     borderRadius: '6px',
                                     cursor: 'pointer'
                                 }}
-                                onClick={() => {
-                                    showToast(`"${m.title}": ${m.revenue} ₽ выручки`, 'success');
-                                }}
+
                             >
                                 <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
                                     <span style={{
@@ -204,7 +194,7 @@ const DashboardStats = ({ showToast }) => {
     );
 };
 
-const StatCard = ({ title, value, color, icon, showToast }) => {
+const StatCard = ({ title, value, color, icon }) => {
     return (
         <div
             style={{
@@ -215,9 +205,7 @@ const StatCard = ({ title, value, color, icon, showToast }) => {
                 alignItems: 'center',
                 cursor: 'pointer'
             }}
-            onClick={() => {
-                showToast(`${title}: ${value}`, 'info');
-            }}
+
         >
             <div>
                 <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '5px', textTransform:'uppercase' }}>{title}</div>

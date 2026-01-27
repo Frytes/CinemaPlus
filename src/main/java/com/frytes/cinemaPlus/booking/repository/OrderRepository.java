@@ -66,13 +66,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     //Топ фильмов по выручке
     @Query("SELECT new com.frytes.cinemaPlus.booking.dto.MovieStatDto(" +
-            "m.title, SUM(s.basePrice), COUNT(t)) " +
+            "m.title, " +
+            "SUM(t.price), " +
+            "COUNT(t)) " +
             "FROM Ticket t " +
             "JOIN t.session s " +
             "JOIN s.movie m " +
             "JOIN t.order o " +
             "WHERE o.status = :status " +
             "GROUP BY m.title " +
-            "ORDER BY SUM(s.basePrice) DESC")
+            "ORDER BY SUM(t.price) DESC")
     List<MovieStatDto> findTopMoviesByRevenue(OrderStatus status, Pageable pageable);
 }

@@ -23,3 +23,5 @@ databaseChangeLog:
       file: db/changelog/changes/011-create-outbox-events-table.yaml
   - include:
       file: db/changelog/changes/012-create-refresh-tokens-table.yaml
+  - include:
+      file: db/changelog/changes/013-add-price-to-tickets.yaml

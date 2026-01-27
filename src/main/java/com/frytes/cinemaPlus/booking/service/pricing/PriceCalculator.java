@@ -15,27 +15,21 @@ import java.util.Map;
 public class PriceCalculator {
 
     private final PricingRulesService pricingRulesService;
-
     private final List<PricingStrategy> strategies;
 
-    public BigDecimal calculateTotal(Session session, List<Seat> seats) {
-        Map<String, PricingRule> rules = pricingRulesService.getAllRulesMap();
+    public Map<String, PricingRule> getActiveRules() {
+        return pricingRulesService.getAllRulesMap();
+    }
 
-        BigDecimal total = BigDecimal.ZERO;
+    public BigDecimal calculatePrice(Session session, Seat seat, Map<String, PricingRule> rules) {
+        BigDecimal price = session.getBasePrice();
 
-        for (Seat seat : seats) {
-            BigDecimal ticketPrice = session.getBasePrice();
-
-            for (PricingStrategy strategy : strategies) {
-                PricingRule rule = rules.get(strategy.getRuleName());
-
-                if (rule != null && Boolean.TRUE.equals(rule.getIsActive())) {
-                    ticketPrice = strategy.calculate(ticketPrice, session, seat, rule.getAmount());
-                }
+        for (PricingStrategy strategy : strategies) {
+            PricingRule rule = rules.get(strategy.getRuleName());
+            if (rule != null && Boolean.TRUE.equals(rule.getIsActive())) {
+                price = strategy.calculate(price, session, seat, rule.getAmount());
             }
-
-            total = total.add(ticketPrice);
         }
-        return total;
+        return price;
     }
 }

@@ -44,6 +44,7 @@ public class BookingService {
     private final PricingRulesService pricingRulesService;
     private final SocketNotificationService socketService;
 
+
     @Transactional
     public Order createBooking(BookingRequest request, User user) {
         Session session = sessionRepository.findById(request.sessionId())
@@ -69,11 +70,12 @@ public class BookingService {
                 throw new IllegalArgumentException("Место " + seat.getSeatNumber() + " не принадлежит залу этого сеанса!");
             }
         }
-        List<Long> seatsToLock = new ArrayList<>(request.seatIds());
-        Collections.sort(seatsToLock);
 
         List<Long> lockedSeats = new ArrayList<>();
         try {
+            List<Long> seatsToLock = new ArrayList<>(request.seatIds());
+            Collections.sort(seatsToLock);
+
             for (Long seatId : seatsToLock) {
                 boolean success = bookingLockService.acquireLock(session.getId(), seatId, user.getId());
                 if (!success) {
@@ -88,38 +90,41 @@ public class BookingService {
             throw e;
         }
 
-        BigDecimal totalPrice = priceCalculator.calculateTotal(session, seats);
+        Map<String, PricingRule> activeRules = priceCalculator.getActiveRules();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        Order order = Order.builder()
+                .user(user)
+                .status(OrderStatus.PENDING)
+                .tickets(new ArrayList<>())
+                .build();
 
         try {
-            Order order = Order.builder()
-                    .user(user)
-                    .status(OrderStatus.PENDING)
-                    .totalPrice(totalPrice)
-                    .tickets(new ArrayList<>())
-                    .build();
-
-
             for (Seat seat : seats) {
+                BigDecimal ticketPrice = priceCalculator.calculatePrice(session, seat, activeRules);
+
+                totalPrice = totalPrice.add(ticketPrice);
+
                 Ticket ticket = Ticket.builder()
                         .session(session)
                         .seat(seat)
                         .order(order)
+                        .price(ticketPrice)
                         .build();
-
 
                 order.getTickets().add(ticket);
                 socketService.sendSeatUpdate(session.getId(), seat, SocketStatus.LOCKED);
             }
+            order.setTotalPrice(totalPrice);
 
             return orderRepository.save(order);
-        } catch (RuntimeException e) {
 
+        } catch (RuntimeException e) {
             for (Long seatId : lockedSeats) {
                 bookingLockService.releaseLock(session.getId(), seatId, user.getId());
             }
             throw e;
         }
-
     }
     @Transactional(readOnly = true)
     public List<SeatStatusDto> getSeatsForSession(Long sessionId) {

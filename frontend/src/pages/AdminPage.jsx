@@ -18,7 +18,7 @@ const AdminPage = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <DashboardStats />;
+            case 'dashboard': return <DashboardStats showToast={showToast} />;
             case 'halls': return <HallManager showToast={showToast} />;
             case 'movies': return <MovieManager showToast={showToast} />;
             case 'sessions': return <SessionManager showToast={showToast} />;

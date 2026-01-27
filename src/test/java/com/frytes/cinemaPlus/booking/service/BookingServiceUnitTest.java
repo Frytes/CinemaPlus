@@ -28,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,9 +75,9 @@ class BookingServiceUnitTest {
         when(ticketRepository.findAllBySessionIdAndSeatIdIn(any(), any())).thenReturn(List.of());
         when(seatRepository.findAllById(request.seatIds())).thenReturn(List.of(seat));
         when(bookingLockService.acquireLock(any(), any(), any())).thenReturn(true);
-        when(priceCalculator.calculateTotal(any(), any())).thenReturn(BigDecimal.valueOf(100));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
+        when(priceCalculator.getActiveRules()).thenReturn(Map.of());
+        when(priceCalculator.calculatePrice(any(), any(), any())).thenReturn(BigDecimal.valueOf(100));
 
         // When
         Order order = bookingService.createBooking(request, user);
@@ -84,7 +85,9 @@ class BookingServiceUnitTest {
         // Then
         verify(bookingLockService).acquireLock(session.getId(), seat.getId(), user.getId());
         verify(orderRepository).save(any(Order.class));
+
         assertThat(order.getTotalPrice()).isEqualTo(BigDecimal.valueOf(100));
+        assertThat(order.getTickets().getFirst().getPrice()).isEqualTo(BigDecimal.valueOf(100));
     }
 
     @Test
@@ -122,15 +125,15 @@ class BookingServiceUnitTest {
 
         when(sessionRepository.findById(session.getId())).thenReturn(Optional.of(session));
         when(seatRepository.findAllById(request.seatIds())).thenReturn(List.of(seat));
-
         when(bookingLockService.acquireLock(any(), any(), any())).thenReturn(true);
-        when(priceCalculator.calculateTotal(any(), any())).thenReturn(BigDecimal.valueOf(100));
+        when(priceCalculator.getActiveRules()).thenReturn(Map.of());
+        when(priceCalculator.calculatePrice(any(), any(), any())).thenReturn(BigDecimal.valueOf(100));
 
 
         when(orderRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
 
+        // When & Then
         assertThrows(RuntimeException.class, () -> bookingService.createBooking(request, user));
-
         verify(bookingLockService).releaseLock(session.getId(), seat.getId(), user.getId());
     }
 }
