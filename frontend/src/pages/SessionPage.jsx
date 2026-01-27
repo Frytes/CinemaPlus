@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { Client } from '@stomp/stompjs';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 const SessionPage = () => {
     const { id } = useParams();
@@ -19,6 +19,7 @@ const SessionPage = () => {
     const [timeLeft, setTimeLeft] = useState(0);
     const [toast, setToast] = useState(null);
     const [tooltip, setTooltip] = useState(null);
+    const location = useLocation();
 
     const showToast = (message, type = 'error') => {
         setToast({ message, type });
@@ -47,6 +48,7 @@ const SessionPage = () => {
 
     const checkPendingOrder = useCallback(async () => {
         if (!localStorage.getItem('accessToken')) return;
+
         try {
             const res = await api.get(`/bookings/session/${id}/my-pending`);
             if (res.data) {
@@ -198,9 +200,8 @@ const SessionPage = () => {
 
     const handleBuy = async () => {
         if (selectedSeatIds.length === 0) return;
-
         if (!localStorage.getItem('accessToken')) {
-            navigate('/login');
+            navigate('/login', { state: { from: location } });
             return;
         }
 

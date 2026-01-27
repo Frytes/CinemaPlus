@@ -18,8 +18,8 @@ import com.frytes.cinemaPlus.content.entity.Seat;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.content.entity.enumps.SeatType;
 import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
-import com.frytes.cinemaPlus.repository.SeatRepository;
-import com.frytes.cinemaPlus.repository.SessionRepository;
+import com.frytes.cinemaPlus.content.repository.SeatRepository;
+import com.frytes.cinemaPlus.content.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,6 +43,7 @@ public class BookingService {
     private final PriceCalculator priceCalculator;
     private final PricingRulesService pricingRulesService;
     private final SocketNotificationService socketService;
+
 
     @Transactional
     public Order createBooking(BookingRequest request, User user) {
@@ -69,9 +70,13 @@ public class BookingService {
                 throw new IllegalArgumentException("Место " + seat.getSeatNumber() + " не принадлежит залу этого сеанса!");
             }
         }
+
         List<Long> lockedSeats = new ArrayList<>();
         try {
-            for (Long seatId : request.seatIds()) {
+            List<Long> seatsToLock = new ArrayList<>(request.seatIds());
+            Collections.sort(seatsToLock);
+
+            for (Long seatId : seatsToLock) {
                 boolean success = bookingLockService.acquireLock(session.getId(), seatId, user.getId());
                 if (!success) {
                     throw new UserAlreadyExistsException("Место " + seatId + " уже выбрано другим пользователем");
@@ -85,38 +90,41 @@ public class BookingService {
             throw e;
         }
 
-        BigDecimal totalPrice = priceCalculator.calculateTotal(session, seats);
+        Map<String, PricingRule> activeRules = priceCalculator.getActiveRules();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        Order order = Order.builder()
+                .user(user)
+                .status(OrderStatus.PENDING)
+                .tickets(new ArrayList<>())
+                .build();
 
         try {
-            Order order = Order.builder()
-                    .user(user)
-                    .status(OrderStatus.PENDING)
-                    .totalPrice(totalPrice)
-                    .tickets(new ArrayList<>())
-                    .build();
-
-
             for (Seat seat : seats) {
+                BigDecimal ticketPrice = priceCalculator.calculatePrice(session, seat, activeRules);
+
+                totalPrice = totalPrice.add(ticketPrice);
+
                 Ticket ticket = Ticket.builder()
                         .session(session)
                         .seat(seat)
                         .order(order)
+                        .price(ticketPrice)
                         .build();
-
 
                 order.getTickets().add(ticket);
                 socketService.sendSeatUpdate(session.getId(), seat, SocketStatus.LOCKED);
             }
+            order.setTotalPrice(totalPrice);
 
             return orderRepository.save(order);
-        } catch (RuntimeException e) {
 
+        } catch (RuntimeException e) {
             for (Long seatId : lockedSeats) {
                 bookingLockService.releaseLock(session.getId(), seatId, user.getId());
             }
             throw e;
         }
-
     }
     @Transactional(readOnly = true)
     public List<SeatStatusDto> getSeatsForSession(Long sessionId) {

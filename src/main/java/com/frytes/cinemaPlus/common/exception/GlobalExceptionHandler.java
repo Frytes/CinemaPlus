@@ -105,7 +105,7 @@ public class GlobalExceptionHandler {
         }
 
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(), // 409 Conflict - идеально подходит
+                HttpStatus.CONFLICT.value(), // 409
                 "Conflict",
                 errorMessage,
                 request.getRequestURI(),
@@ -117,6 +117,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SeatAlreadySoldException.class)
     public ResponseEntity<ErrorResponse> handleSeatAlreadySold(
             SeatAlreadySoldException ex,
+            HttpServletRequest request
+    ) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(), // 409
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(
+            IllegalStateException ex,
             HttpServletRequest request
     ) {
         ErrorResponse error = new ErrorResponse(

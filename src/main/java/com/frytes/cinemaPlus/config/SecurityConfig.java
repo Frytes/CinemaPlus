@@ -3,6 +3,7 @@ package com.frytes.cinemaPlus.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,8 +11,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.springframework.http.HttpMethod.GET;
 
 @Configuration
 @EnableWebSecurity
@@ -28,13 +27,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(GET, "/api/movies/**").permitAll()
-                        .requestMatchers( "/api/sessions/**").permitAll()
-                        .requestMatchers("/api/bookings/my-tickets").authenticated()
-                        .requestMatchers("/api/bookings/session/*/my-pending").authenticated()
-                        .requestMatchers(GET, "/api/bookings/*/qr").authenticated()
-                        .requestMatchers(GET,"/api/bookings/session/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/movies/**", "/api/halls/**", "/api/sessions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/session/*/seats").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/pricing/**").hasAuthority("ADMIN")
+
+                        .requestMatchers("/api/bookings/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

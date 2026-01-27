@@ -23,15 +23,9 @@ const HomePage = () => {
         fetchMovies();
     }, []);
 
-    // handleLogout - УДАЛЯЕМ
 
-    // Проверка для кнопки "Купить билет"
     const handleBuyClick = (movieId) => {
-        if (!localStorage.getItem('accessToken')) {
-            navigate('/login');
-        } else {
             navigate(`/movie/${movieId}`);
-        }
     };
 
     return (

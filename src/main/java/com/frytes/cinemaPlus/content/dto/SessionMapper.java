@@ -11,5 +11,6 @@ public interface SessionMapper {
     @Mapping(target = "hallId", source = "hall.id")
     @Mapping(target = "hallName", source = "hall.name")
     @Mapping(target = "price", source = "basePrice")
+    @Mapping(target = "endTime", source = "endTime")
     SessionDto toDto(Session session);
 }

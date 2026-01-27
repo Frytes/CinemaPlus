@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-add-price-to-tickets
+      author: frytes
+      changes:
+        - addColumn:
+            tableName: tickets
+            columns:
+              - column:
+                  name: price
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0

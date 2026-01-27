@@ -35,4 +35,15 @@ public class SessionController {
         sessionService.createSession(request);
         return ResponseEntity.status(201).build();
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
+        sessionService.deleteSession(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateSession(@PathVariable Long id, @Valid @RequestBody SessionRequest request) {
+        sessionService.updateSession(id, request);
+        return ResponseEntity.ok().build();
+    }
 }

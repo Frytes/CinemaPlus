@@ -11,10 +11,7 @@ const AdminRoute = ({ children }) => {
     try {
         const payload = jwtDecode(token);
 
-        const now = Date.now() / 1000;
-        if (payload.exp < now) {
-             return <Navigate to="/login" replace />;
-        }
+
 
         if (payload.role === 'ADMIN') {
             return children;

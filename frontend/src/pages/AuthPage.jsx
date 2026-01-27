@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axiosConfig';
 
 const AuthPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLogin, setIsLogin] = useState(true);
 
     const [email, setEmail] = useState('');
@@ -18,26 +19,49 @@ const AuthPage = () => {
         setMessage('');
         setError('');
 
+        if (!isLogin) {
+             if (username.length < 2) {
+                  setError('Имя должно быть не короче 2 символов');
+                  return;
+             }
+             if (username.length > 50) {
+                  setError('Имя должно быть не длиннее 50 символов');
+                  return;
+             }
+             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+             if (!emailRegex.test(email)) {
+                  setError('Некорректный формат email');
+                  return;
+             }
+             if (password.length < 8) {
+                  setError('Пароль должен быть не менее 8 символов');
+                  return;
+             }
+
+             const passwordRegex = /^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/;
+             if (!passwordRegex.test(password)) {
+                  setError('Пароль содержит недопустимые символы');
+                  return;
+             }
+        }
+
         const endpoint = isLogin ? '/auth/login' : '/auth/register';
         const payload = isLogin ? { email, password } : { username, email, password };
 
         try {
             const response = await api.post(endpoint, payload);
-            console.log("Ответ сервера:", response.data);
+            const { accessToken, refreshToken } = response.data; // Исправил деструктуризацию
 
-            const accessToken = response.data.token || response.data.accessToken;
-            const refreshToken = response.data.refreshToken;
-
-            if (!accessToken) {
-                throw new Error("Сервер не прислал токен!");
-            }
+            if (!accessToken) throw new Error("Сервер не прислал токен!");
 
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
 
             setMessage(isLogin ? 'Вход выполнен!' : 'Регистрация успешна! Вход...');
+
             setTimeout(() => {
-                navigate('/');
+                const origin = location.state?.from?.pathname || '/';
+                navigate(origin, { replace: true });
             }, 500);
 
         } catch (err) {
@@ -47,25 +71,26 @@ const AuthPage = () => {
         }
     };
 
+    const handleSwitchMode = () => {
+        setIsLogin(!isLogin);
+        setMessage('');
+        setError('');
+    };
+
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            width: '100%'
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100%' }}>
             <div className="auth-container">
                 <h2>{isLogin ? 'Вход' : 'Регистрация'}</h2>
 
-                <form onSubmit={handleSubmit}>
+                {/* noValidate отключает встроенные тултипы браузера */}
+                <form onSubmit={handleSubmit} noValidate>
                     {!isLogin && (
                         <div className="form-group">
                             <label>Имя пользователя</label>
                             <input
                                 type="text"
                                 value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                onChange={(e) => { setUsername(e.target.value); setError(''); }}
                                 required={!isLogin}
                             />
                         </div>
@@ -76,7 +101,7 @@ const AuthPage = () => {
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => { setEmail(e.target.value); setError(''); }}
                             required
                         />
                     </div>
@@ -86,7 +111,7 @@ const AuthPage = () => {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => { setPassword(e.target.value); setError(''); }}
                             required
                         />
                     </div>
@@ -101,7 +126,7 @@ const AuthPage = () => {
 
                 <div className="toggle-link">
                     {isLogin ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-                    <span onClick={() => { setIsLogin(!isLogin); setMessage(''); setError(''); }}>
+                    <span onClick={handleSwitchMode}>
                         {isLogin ? 'Зарегистрироваться' : 'Войти'}
                     </span>
                 </div>

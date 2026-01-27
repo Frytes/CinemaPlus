@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("🧮 Тест правильного  расчета цены билета")
@@ -36,20 +35,21 @@ class PriceCalculatorTest {
     }
 
     @Test
-    @DisplayName("✅ Должен правильно считать VIP наценку")
-    void calculateTotal_WithVip() {
+    @DisplayName("✅ Должен правильно считать цену VIP билета (База + Наценка)")
+    void calculatePrice_WithVipSeat() {
+        // Given
         Session session = new Session();
         session.setBasePrice(BigDecimal.valueOf(300));
 
-        Seat standard = new Seat(); standard.setType(SeatType.STANDARD);
-        Seat vip = new Seat(); vip.setType(SeatType.VIP);
-        List<Seat> seats = List.of(standard, vip);
-
+        Seat vipSeat = new Seat();
+        vipSeat.setType(SeatType.VIP);
         PricingRule vipRule = new PricingRule("VIP_SURCHARGE", BigDecimal.valueOf(200), true);
-        when(pricingRulesService.getAllRulesMap()).thenReturn(Map.of("VIP_SURCHARGE", vipRule));
+        Map<String, PricingRule> activeRules = Map.of("VIP_SURCHARGE", vipRule);
 
-        BigDecimal total = priceCalculator.calculateTotal(session, seats);
+        // When
+        BigDecimal result = priceCalculator.calculatePrice(session, vipSeat, activeRules);
 
-        assertEquals(BigDecimal.valueOf(800), total);
+        // Then
+        assertEquals(BigDecimal.valueOf(500), result);
     }
 }
