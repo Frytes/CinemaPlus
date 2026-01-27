@@ -35,7 +35,7 @@ public class AuthService {
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new UserAlreadyExistsException("Пользователь с таким email уже существует");
         }
-        if (userRepository.existsByUsername(normalizedEmail)) {
+        if (userRepository.existsByUsername(request.username())) {
             throw new UserAlreadyExistsException("Пользователь с таким именем уже существует");
         }
         User user = userMapper.toEntity(request);
