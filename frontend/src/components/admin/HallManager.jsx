@@ -10,8 +10,6 @@ const HallManager = ({ showToast }) => {
     const [loading, setLoading] = useState(false);
 
 
-
-    // Инициализация сетки.
     useEffect(() => {
         setGrid(prev => {
             const newGrid = [];
@@ -63,6 +61,7 @@ const HallManager = ({ showToast }) => {
         setLoading(true);
 
         const seatsPayload = [];
+
 
         for (let r = 0; r < rows; r++) {
             let seatCounter = 1;
@@ -139,7 +138,7 @@ const HallManager = ({ showToast }) => {
 
                     <div style={{display:'flex', gap:'10px', justifyContent:'center', fontSize:'0.8rem', color:'#aaa'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
-                            <div style={{width:'15px', height:'15px', background:'#2ecc71', borderRadius:'3px'}}></div> Std
+                            <div style={{width:'15px', height:'15px', background:'#2ecc71', borderRadius:'3px'}}></div> STANDARD
                         </div>
                         <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
                             <div style={{width:'15px', height:'15px', background:'linear-gradient(135deg, #ffd700, #ff9900)', borderRadius:'3px'}}></div> VIP
@@ -181,13 +180,11 @@ const HallManager = ({ showToast }) => {
                                     {row.map((cell, cIndex) => (
                                         <div
                                             key={`${rIndex}-${cIndex}`}
-
                                             onMouseDown={(e) => {
                                                 if (e.button === 0) handleLeftClick(rIndex, cIndex);
                                                 if (e.button === 2) handleRightClick(e, rIndex, cIndex);
                                             }}
                                             onContextMenu={(e) => e.preventDefault()}
-                                            title={`Ряд ${rIndex+1}, Место ${cIndex+1}`}
                                             style={{
                                                 width: `${seatSize}px`,
                                                 height: `${seatSize}px`,
@@ -199,11 +196,30 @@ const HallManager = ({ showToast }) => {
                                                 fontSize: seatSize < 25 ? '0' : '0.6rem',
                                                 fontWeight: 'bold',
                                                 userSelect: 'none',
-                                                transition: 'all 0.1s',
-                                                ...getSeatStyle(cell.type)
+                                                transition: 'all 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                                                transform: 'scale(1)',
+                                                ...getSeatStyle(cell.type),
+
                                             }}
                                         >
-                                            {cell.type === 'VIP' && seatSize > 20 && 'V'}
+                                            {cell.type === 'VIP' && seatSize > 20 && (
+                                                <span style={{
+                                                    fontSize: seatSize < 30 ? '0.5rem' : '0.65rem',
+                                                    fontWeight: '800',
+                                                    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                                                }}>
+                                                    V
+                                                </span>
+                                            )}
+                                            {cell.type === 'STANDARD' && seatSize > 25 && (
+                                                <span style={{
+                                                    fontSize: seatSize < 30 ? '0.4rem' : '0.55rem',
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    fontWeight: '600'
+                                                }}>
+
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -223,21 +239,96 @@ const HallManager = ({ showToast }) => {
 
 // --- СТИЛИ ---
 const getSeatStyle = (type) => {
+    const baseStyle = {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+    };
+
     switch (type) {
-        case 'VIP': return { background: 'linear-gradient(135deg, #ffd700, #ff9900)', border: '1px solid #ff9900', color: '#000', boxShadow: '0 0 5px rgba(255, 215, 0, 0.4)' };
-        case 'STANDARD': return { background: '#2ecc71', border: '1px solid #27ae60', color: 'transparent' };
-        default: return { background: 'transparent', border: '1px dashed #333', color: 'transparent', opacity: 0.3 };
+        case 'VIP':
+            return {
+                ...baseStyle,
+                background: 'linear-gradient(135deg, #ffd700, #ff9900)',
+                border: '1px solid #ff9900',
+                color: '#000',
+                boxShadow: '0 0 5px rgba(255, 215, 0, 0.4), 0 2px 4px rgba(0,0,0,0.2)'
+            };
+        case 'STANDARD':
+            return {
+                ...baseStyle,
+                background: '#2ecc71',
+                border: '1px solid #27ae60',
+                color: 'transparent'
+            };
+        default:
+            return {
+                ...baseStyle,
+                background: 'transparent',
+                border: '1px dashed #555',
+                color: 'transparent',
+                opacity: 0.3
+            };
     }
 };
 
-const rowLabelStyle = { color: '#666', fontSize: '0.8rem', width: '20px', textAlign: 'center', fontWeight: 'bold', userSelect: 'none' };
+const rowLabelStyle = {
+    color: '#666',
+    fontSize: '0.8rem',
+    width: '20px',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    userSelect: 'none'
+};
+
 const InputGroup = ({label, children}) => (
     <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
         <label style={{fontSize:'0.85rem', color:'#aaa', fontWeight:'500'}}>{label}</label>
         {children}
     </div>
 );
-const inputStyle = { padding: '12px', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '6px', width: '100%', outline:'none' };
-const submitButtonStyle = { padding: '16px', background: '#e50914', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' };
+
+const inputStyle = {
+    padding: '12px',
+    background: '#333',
+    border: '1px solid #444',
+    color: 'white',
+    borderRadius: '6px',
+    width: '100%',
+    outline: 'none',
+    transition: 'all 0.2s',
+    ':focus': {
+        borderColor: '#e50914',
+        boxShadow: '0 0 0 2px rgba(229, 9, 20, 0.1)'
+    }
+};
+
+const submitButtonStyle = {
+    padding: '16px',
+    background: '#e50914',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    marginTop: '10px',
+    transition: 'all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+    transform: 'translateY(0)',
+    boxShadow: '0 4px 6px rgba(229, 9, 20, 0.2)',
+    ':hover:not(:disabled)': {
+        background: '#f40612',
+        transform: 'translateY(-2px)',
+        boxShadow: '0 6px 12px rgba(229, 9, 20, 0.3)'
+    },
+    ':active:not(:disabled)': {
+        transform: 'translateY(0)',
+        transition: 'transform 0.1s'
+    },
+    ':disabled': {
+        background: '#555',
+        cursor: 'not-allowed',
+        transform: 'none',
+        boxShadow: 'none'
+    }
+};
 
 export default HallManager;

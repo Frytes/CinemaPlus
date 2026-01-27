@@ -12,8 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static org.springframework.http.HttpMethod.GET;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -39,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/pricing/**").hasAuthority("ADMIN")
 
+                        .requestMatchers("/api/bookings/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

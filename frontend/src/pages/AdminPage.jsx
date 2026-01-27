@@ -5,7 +5,8 @@ import SessionManager from '../components/admin/SessionManager';
 import MovieManager from '../components/admin/MovieManager';
 import HallManager from '../components/admin/HallManager';
 import PricingManager from '../components/admin/PricingManager';
-import Toast from '../components/Toast';
+import DashboardStats from '../components/admin/DashboardStats';
+import Toast from '../components/Toast'; // Импортируем Toast из отдельного файла
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState('sessions');
@@ -13,12 +14,11 @@ const AdminPage = () => {
 
     const showToast = (message, type = 'error') => {
         setToast({ message, type });
-        setTimeout(() => setToast(null), 3000);
     };
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'dashboard': return <h2>📊 Статистика (в разработке)</h2>;
+            case 'dashboard': return <DashboardStats />;
             case 'halls': return <HallManager showToast={showToast} />;
             case 'movies': return <MovieManager showToast={showToast} />;
             case 'sessions': return <SessionManager showToast={showToast} />;
@@ -30,7 +30,15 @@ const AdminPage = () => {
     return (
         <div style={{ width: '100%', minHeight: '100vh', color: '#e0e0e0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Navbar />
-            {toast && <Toast message={toast.message} type={toast.type} />}
+
+            {/* Toast уведомление */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
 
             <div style={{ display: 'flex', flexGrow: 1, marginTop: '76px', height: 'calc(100vh - 76px)' }}>
                 <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -51,7 +59,7 @@ const AdminPage = () => {
                         boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
                         maxWidth: activeTab === 'halls' ? '100%' : '1200px',
                         margin: '0 auto',
-                        minHeight: '100%' /
+                        minHeight: '100%'
                     }}>
                         {renderContent()}
                     </div>
