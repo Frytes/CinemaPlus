@@ -1,14 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: 013-add-price-to-tickets
+      id: 007-add-price-to-order
       author: frytes
       changes:
         - addColumn:
-            tableName: tickets
+            tableName: orders
             columns:
               - column:
-                  name: price
+                  name: total_price
                   type: DECIMAL(10, 2)
+                  defaultValue: 0
                   constraints:
                     nullable: false
-                  defaultValueNumeric: 0

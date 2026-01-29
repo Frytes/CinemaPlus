@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 012-create-refresh-tokens
+      id: 010-create-outbox-events-table
       author: frytes
       changes:
         - createTable:
-            tableName: refresh_tokens
+            tableName: outbox_events
             columns:
               - column:
                   name: id
@@ -14,28 +14,29 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: token
+                  name: topic
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-                    unique: true
               - column:
-                  name: expiry_date
+                  name: payload
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
                   type: TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_refresh_token_user
-                    references: users(id)
-                    deleteCascade: true
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
 
         - createIndex:
-            tableName: refresh_tokens
-            indexName: idx_refresh_token_token
+            tableName: outbox_events
+            indexName: idx_outbox_status
             columns:
               - column:
-                  name: token
+                  name: status

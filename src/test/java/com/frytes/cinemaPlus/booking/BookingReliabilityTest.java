@@ -99,9 +99,9 @@ class BookingReliabilityTest extends BaseIntegrationTest {
         Order order = bookingService.createBooking(request, user);
         Long orderId = order.getId();
 
-        boolean firstAttempt = paymentService.processPayment(orderId);
+        boolean firstAttempt = paymentService.processPayment(orderId,user);
 
-        boolean secondAttempt = paymentService.processPayment(orderId);
+        boolean secondAttempt = paymentService.processPayment(orderId,user);
 
         assertThat(firstAttempt).as("Первая оплата должна пройти").isTrue();
         assertThat(secondAttempt).as("Вторая оплата должна быть отклонена (уже оплачено)").isFalse();

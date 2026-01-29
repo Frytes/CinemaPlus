@@ -12,10 +12,14 @@ spring:
     username: myuser
     password: secret
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
 
   data:
     redis:
-      host: ${MY_WSL_IP:localhost}
+      host: localhost
       port: 6379
       timeout: 2000ms
 
@@ -65,6 +69,22 @@ jwt:
   expiration: 15m               # (Access Token)
   refresh-expiration-days: 30   # (Refresh Token)
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,metrics"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+
+
 cinema:
   # 1. Глобальные правила (Используются при реальной работе приложения)
   rules:
@@ -85,8 +105,20 @@ cinema:
         blue: 100                 # Синий зал
         green: 0                  # Зеленый зал
 
-  # 3. Настройки эмуляторов (Для тестов и демонстрации)
+  # 3. Настройки эмуляторов
   mock:
     payment:
-      delay-ms: 1000              # Имитация задержки банка
-      fail-probability: 10        # Вероятность отказа (0-100%)
+      delay-ms: 500              # Имитация задержки банка
+      fail-probability: 0         # Вероятность отказа оплаты(0-100%)
+
+
+#----------------------STRESS-MODE----------------------------------
+  stress:
+    enabled: true
+    target-url: http://localhost:8080   # Целевой адрес API
+    bot-count: 3000                     # Количество одновременных пользователей (ботов)
+    ramp-up-seconds: 60                 # За сколько секунд создаться ботов от 0 до значения bot-count
+    think-time-ms: 500                  # Задержка (мс) между действиями бота (имитация чтения, выбора)
+    buy-probability: 80                 # Вероятность (%), что бот дойдет до оплаты.
+    days-to-scan: 5                     # Смотрим расписание на неделю вперед
+

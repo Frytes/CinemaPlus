@@ -71,11 +71,19 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
             <div style={{ height: '1px', background: '#222', margin: '15px 25px' }}></div>
 
-            <SidebarItem
-                label="💰 Цены и Скидки"
-                active={activeTab === 'pricing'}
-                onClick={() => setActiveTab('pricing')}
-            />
+             <SidebarItem
+                  label="💰 Цены и Скидки"
+                  active={activeTab === 'pricing'}
+                  onClick={() => setActiveTab('pricing')}
+              />
+
+              <div style={{ height: '1px', background: '#222', margin: '15px 25px' }}></div>
+
+              <SidebarItem
+                  label="🤖 Стресс-тест"
+                  active={activeTab === 'simulation'}
+                  onClick={() => setActiveTab('simulation')}
+              />
         </div>
     );
 };

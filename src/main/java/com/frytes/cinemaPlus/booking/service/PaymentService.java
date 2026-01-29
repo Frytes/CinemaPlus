@@ -15,11 +15,13 @@ import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Session;
 import com.frytes.cinemaPlus.notification.service.SocketNotificationService;
+import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +54,13 @@ public class PaymentService {
 
     @SneakyThrows
     @Transactional
-    public boolean processPayment(Long orderId) {
+    public boolean processPayment(Long orderId, User user) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Вы не можете оплатить чужой заказ!");
+        }
 
         if (delayMs > 0) {
             Thread.sleep(delayMs + random.nextInt(200));
@@ -60,12 +68,12 @@ public class PaymentService {
 
         boolean success = random.nextInt(100) >= failProbability;
 
-        return finalizeOrder(orderId, success);
+        return finalizeOrder(order, success);
     }
     @SneakyThrows
     @Transactional
-    protected boolean finalizeOrder(Long orderId, boolean paymentSuccess)  {
-        Order order = orderRepository.findLockedWithDetailsById(orderId)
+    protected boolean finalizeOrder(Order orderParam, boolean paymentSuccess)  {
+        Order order = orderRepository.findLockedWithDetailsById(orderParam.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
 
         if (order.getStatus() != OrderStatus.PENDING) {

@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,8 +53,10 @@ public class BookingController {
     }
 
     @GetMapping(value = "/{orderId}/qr", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> getOrderQrCode(@PathVariable Long orderId) {
-            Map<String, Object> qrData = bookingService.getOrderQrData(orderId);
+    public ResponseEntity<byte[]> getOrderQrCode(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal User user) {
+            Map<String, Object> qrData = bookingService.getOrderQrData(orderId,user);
             byte[] qrImage = qrCodeService.generateQrCodeFromData(qrData);
 
             return ResponseEntity.ok()
@@ -63,8 +64,6 @@ public class BookingController {
                     .body(qrImage);
 
     }
-
-
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
@@ -77,14 +76,18 @@ public class BookingController {
     }
 
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Void> cancelBooking
+            (@PathVariable Long orderId,
+             @AuthenticationPrincipal User user) {
         bookingService.cancelBooking(orderId, user);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{orderId}/pay")
-    public ResponseEntity<PaymentResponse> payOrder(@PathVariable Long orderId) {
-        boolean success = paymentService.processPayment(orderId);
+    public ResponseEntity<PaymentResponse> payOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal User user) {
+        boolean success = paymentService.processPayment(orderId,user);
         if (success) {
             return ResponseEntity.ok(new PaymentResponse(orderId,"PAID", "Оплата прошла успешна"));
         } else {

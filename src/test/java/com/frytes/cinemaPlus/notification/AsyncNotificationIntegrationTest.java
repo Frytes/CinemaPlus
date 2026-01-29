@@ -83,7 +83,7 @@ class AsyncNotificationIntegrationTest extends BaseIntegrationTest {
         Long orderId = order.getId();
 
         // WHEN
-        paymentService.processPayment(orderId);
+        paymentService.processPayment(orderId,user);
 
         // THEN
         await()

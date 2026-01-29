@@ -46,7 +46,7 @@ public class RefreshTokenService {
     }
     public RefreshToken findByToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh токен не найден в базе"));
+                .orElseThrow(() -> new TokenRefreshException("Refresh токен не найден в базе"));
     }
 
     @Transactional

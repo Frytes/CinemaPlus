@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/pricing/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/simulation/*").hasAuthority("ADMIN")
 
                         .requestMatchers("/api/bookings/**").authenticated()
                         .anyRequest().authenticated()

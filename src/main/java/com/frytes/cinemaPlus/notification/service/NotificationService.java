@@ -24,7 +24,10 @@ public class NotificationService {
     private final QrCodeService qrCodeService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "booking-events-topic", groupId = "notification-group")
+    @KafkaListener(
+            topics = "booking-events-topic",
+            groupId = "notification-group"
+    )
     public void handleBookingPaid(String message) {
         log.info("📨 Kafka Consumer received event: {}", message);
         try{
@@ -56,6 +59,7 @@ public class NotificationService {
 
         String html = templateService.createBookingConfirmation(event, qrBase64);
 
+
         emailService.sendHtmlEmail(
                 event.userEmail(),
                 "Ваш билет в CinemaPlus! 🍿",
@@ -67,7 +71,7 @@ public class NotificationService {
     }
 
 
-    @KafkaListener(topics = "user-events-topic", groupId = "notification-group")
+    @KafkaListener(topics = "user-events-topic", groupId = "notification-group", concurrency = "20")
     public void handleUserRegistered(String message) {
         try {
             UserRegisteredEvent event = objectMapper.readValue(message, UserRegisteredEvent.class);
@@ -81,6 +85,7 @@ public class NotificationService {
                     "Добро пожаловать в CinemaPlus! 🎬",
                     html
             );
+            Thread.sleep(50);
 
             log.info("✅ Приветственное письмо отправлено на: {}", event.email());
 

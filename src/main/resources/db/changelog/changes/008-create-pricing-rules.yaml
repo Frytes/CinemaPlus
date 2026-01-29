@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 009-create-pricing-rules
+      id: 008-create-pricing-rules
       author: frytes
       changes:
         - createTable:

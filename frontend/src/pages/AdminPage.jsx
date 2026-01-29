@@ -6,7 +6,8 @@ import MovieManager from '../components/admin/MovieManager';
 import HallManager from '../components/admin/HallManager';
 import PricingManager from '../components/admin/PricingManager';
 import DashboardStats from '../components/admin/DashboardStats';
-import Toast from '../components/Toast'; // Импортируем Toast из отдельного файла
+import Toast from '../components/Toast';
+import SimulationManager from '../components/admin/SimulationManager';
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState('sessions');
@@ -23,6 +24,7 @@ const AdminPage = () => {
             case 'movies': return <MovieManager showToast={showToast} />;
             case 'sessions': return <SessionManager showToast={showToast} />;
             case 'pricing': return <PricingManager showToast={showToast} />;
+            case 'simulation': return <SimulationManager showToast={showToast} />;
             default: return <h2>Добро пожаловать</h2>;
         }
     };

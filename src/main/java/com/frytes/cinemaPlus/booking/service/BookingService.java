@@ -22,10 +22,12 @@ import com.frytes.cinemaPlus.content.repository.SeatRepository;
 import com.frytes.cinemaPlus.content.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +51,10 @@ public class BookingService {
     public Order createBooking(BookingRequest request, User user) {
         Session session = sessionRepository.findById(request.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Сеанс не найден"));
+
+        if (session.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Нельзя забронировать билет на начавшийся или прошедший сеанс");
+        }
 
         List<Ticket> soldTickets = ticketRepository.findAllBySessionIdAndSeatIdIn(
                 session.getId(),
@@ -218,10 +224,14 @@ public class BookingService {
     }
 
 
-    public Map<String, Object> getOrderQrData(Long orderId) {
+    public Map<String, Object> getOrderQrData(Long orderId, User user) {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Это не ваш билет!");
+        }
 
         if (order.getTickets() == null || order.getTickets().isEmpty()) {
             return Map.of(
