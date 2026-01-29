@@ -26,7 +26,8 @@ public class NotificationService {
 
     @KafkaListener(
             topics = "booking-events-topic",
-            groupId = "notification-group"
+            groupId = "notification-group",
+            concurrency = "20"
     )
     public void handleBookingPaid(String message) {
         log.info("📨 Kafka Consumer received event: {}", message);
