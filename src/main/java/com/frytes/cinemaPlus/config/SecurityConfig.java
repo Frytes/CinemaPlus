@@ -28,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-
+                        .requestMatchers("/api/simulation/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movies/**", "/api/halls/**", "/api/sessions/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/session/*/seats").permitAll()
 

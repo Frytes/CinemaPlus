@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 010-create-audit-table
+      id: 009-create-audit-table
       author: frytes
       changes:
         - createTable:

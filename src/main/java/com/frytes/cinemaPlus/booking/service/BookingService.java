@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +50,10 @@ public class BookingService {
     public Order createBooking(BookingRequest request, User user) {
         Session session = sessionRepository.findById(request.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Сеанс не найден"));
+
+        if (session.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Нельзя забронировать билет на начавшийся или прошедший сеанс");
+        }
 
         List<Ticket> soldTickets = ticketRepository.findAllBySessionIdAndSeatIdIn(
                 session.getId(),

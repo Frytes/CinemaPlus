@@ -1,7 +1,7 @@
 databaseChangeLog:
   # 1. Таблица Заказов
   - changeSet:
-      id: 007-create-orders-table
+      id: 006-create-orders-and-tickets-tables
       author: frytes
       changes:
         - createTable:

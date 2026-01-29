@@ -11,7 +11,7 @@ public class KafkaConfig {
     @Bean
     public NewTopic bookingEventsTopic() {
         return TopicBuilder.name("booking-events-topic")
-                .partitions(3)
+                .partitions(30)
                 .replicas(1)
                 .build();
     }
@@ -19,7 +19,7 @@ public class KafkaConfig {
     @Bean
     public NewTopic userEventsTopic() {
         return TopicBuilder.name("user-events-topic")
-                .partitions(1)
+                .partitions(30)
                 .replicas(1)
                 .build();
     }

@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,8 +63,6 @@ public class BookingController {
 
     }
 
-
-
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @Valid @RequestBody BookingRequest request,
@@ -83,8 +80,10 @@ public class BookingController {
     }
 
     @PostMapping("/{orderId}/pay")
-    public ResponseEntity<PaymentResponse> payOrder(@PathVariable Long orderId) {
-        boolean success = paymentService.processPayment(orderId);
+    public ResponseEntity<PaymentResponse> payOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal User user) {
+        boolean success = paymentService.processPayment(orderId,user);
         if (success) {
             return ResponseEntity.ok(new PaymentResponse(orderId,"PAID", "Оплата прошла успешна"));
         } else {

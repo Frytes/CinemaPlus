@@ -10,18 +10,16 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/005-add-movie-details.yaml
   - include:
-      file: db/changelog/changes/006-insert-demo-movies.yaml
+      file: db/changelog/changes/006-create-orders-and-tickets-tables.yaml
   - include:
-      file: db/changelog/changes/007-create-orders-and-tickets-tables.yaml
+      file: db/changelog/changes/007-add-price-to-order.yaml
   - include:
-      file: db/changelog/changes/008-add-price-to-order.yaml
+      file: db/changelog/changes/008-create-pricing-rules.yaml
   - include:
-      file: db/changelog/changes/009-create-pricing-rules.yaml
+      file: db/changelog/changes/009-create-audit-table.yaml
   - include:
-      file: db/changelog/changes/010-create-audit-table.yaml
+      file: db/changelog/changes/010-create-outbox-events-table.yaml
   - include:
-      file: db/changelog/changes/011-create-outbox-events-table.yaml
+      file: db/changelog/changes/011-create-refresh-tokens-table.yaml
   - include:
-      file: db/changelog/changes/012-create-refresh-tokens-table.yaml
-  - include:
-      file: db/changelog/changes/013-add-price-to-tickets.yaml
+      file: db/changelog/changes/012-add-price-to-tickets.yaml
