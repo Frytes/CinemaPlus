@@ -111,13 +111,16 @@ cinema:
       delay-ms: 500              # Имитация задержки банка
       fail-probability: 0         # Вероятность отказа оплаты(0-100%)
 
+  infrastructure:
+    loki-url: http://localhost:3100/ready
+    prometheus-url: http://localhost:9090/-/healthy
 
 #----------------------STRESS-MODE----------------------------------
   stress:
     enabled: true
     target-url: http://localhost:8080   # Целевой адрес API
-    bot-count: 3000                     # Количество одновременных пользователей (ботов)
-    ramp-up-seconds: 60                 # За сколько секунд создаться ботов от 0 до значения bot-count
+    bot-count: 3000                      # Количество одновременных пользователей (ботов)
+    ramp-up-seconds: 20                 # За сколько секунд создаться ботов от 0 до значения bot-count
     think-time-ms: 500                  # Задержка (мс) между действиями бота (имитация чтения, выбора)
     buy-probability: 80                 # Вероятность (%), что бот дойдет до оплаты.
     days-to-scan: 5                     # Смотрим расписание на неделю вперед

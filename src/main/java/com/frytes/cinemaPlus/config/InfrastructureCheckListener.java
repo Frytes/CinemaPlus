@@ -2,6 +2,7 @@ package com.frytes.cinemaPlus.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -25,6 +26,13 @@ public class InfrastructureCheckListener implements ApplicationListener<Applicat
     private final JavaMailSender mailSender;
     private final RestClient restClient;
 
+    @Value("${cinema.infrastructure.loki-url}")
+    private String lokiUrl;
+
+    @Value("${cinema.infrastructure.prometheus-url}")
+    private String prometheusUrl;
+
+
     public InfrastructureCheckListener(
             DataSource dataSource,
             RedisConnectionFactory redisConnectionFactory,
@@ -45,8 +53,8 @@ public class InfrastructureCheckListener implements ApplicationListener<Applicat
         boolean redisStatus = checkRedis();
         boolean kafkaStatus = checkKafka();
         boolean mailStatus = checkMail();
-        boolean lokiStatus = checkHttpService("http://localhost:3100/ready", "Loki");
-        boolean prometheusStatus = checkHttpService("http://localhost:9090/-/healthy", "Prometheus");
+        boolean lokiStatus = checkHttpService(lokiUrl, "Loki");
+        boolean prometheusStatus = checkHttpService(prometheusUrl, "Prometheus");
 
         System.out.println("\n");
         System.out.println("============================================================");

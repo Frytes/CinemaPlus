@@ -1,4 +1,43 @@
 services:
+  # === APPLICATION ===
+  backend:
+    build: .
+    container_name: cinema_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_MAIL_HOST=mailhog
+      - CINEMA_INFRASTRUCTURE_LOKI_URL=http://loki:3100/ready
+      - CINEMA_INFRASTRUCTURE_PROMETHEUS_URL=http://prometheus:9090/-/healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      loki:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      mailhog:
+          condition: service_started
+
+    networks:
+      - default
+  frontend:
+    build: ./frontend
+    container_name: cinema_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
   # === DATABASE ===
   postgres:
     image: 'postgres:15-alpine'
@@ -103,6 +142,8 @@ services:
       - "8025:8025"
     logging:
       driver: "none"
+
+
 
 volumes:
   grafana_data:
