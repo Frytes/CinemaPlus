@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +62,7 @@ class BookingServiceUnitTest {
     void setUp() {
         user = new User(1L, "user", "email@test.com", "pass", null);
         hall = new Hall(1L, "Hall 1", 10, 10, null);
-        session = new Session(100L, new Movie(), hall, null, null, BigDecimal.valueOf(100));
+        session = new Session(100L, new Movie(), hall, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), BigDecimal.valueOf(100));
         seat = new Seat(50L, hall, 1, 1, SeatType.STANDARD, "A1");
     }
 

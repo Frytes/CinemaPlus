@@ -53,8 +53,10 @@ public class BookingController {
     }
 
     @GetMapping(value = "/{orderId}/qr", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> getOrderQrCode(@PathVariable Long orderId) {
-            Map<String, Object> qrData = bookingService.getOrderQrData(orderId);
+    public ResponseEntity<byte[]> getOrderQrCode(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal User user) {
+            Map<String, Object> qrData = bookingService.getOrderQrData(orderId,user);
             byte[] qrImage = qrCodeService.generateQrCodeFromData(qrData);
 
             return ResponseEntity.ok()
@@ -74,7 +76,9 @@ public class BookingController {
     }
 
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long orderId, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Void> cancelBooking
+            (@PathVariable Long orderId,
+             @AuthenticationPrincipal User user) {
         bookingService.cancelBooking(orderId, user);
         return ResponseEntity.ok().build();
     }

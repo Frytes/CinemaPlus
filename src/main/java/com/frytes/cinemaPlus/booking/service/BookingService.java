@@ -22,6 +22,7 @@ import com.frytes.cinemaPlus.content.repository.SeatRepository;
 import com.frytes.cinemaPlus.content.repository.SessionRepository;
 import com.frytes.cinemaPlus.users.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -223,10 +224,14 @@ public class BookingService {
     }
 
 
-    public Map<String, Object> getOrderQrData(Long orderId) {
+    public Map<String, Object> getOrderQrData(Long orderId, User user) {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Заказ не найден"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Это не ваш билет!");
+        }
 
         if (order.getTickets() == null || order.getTickets().isEmpty()) {
             return Map.of(

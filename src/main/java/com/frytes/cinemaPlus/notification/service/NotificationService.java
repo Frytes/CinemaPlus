@@ -59,8 +59,7 @@ public class NotificationService {
 
         String html = templateService.createBookingConfirmation(event, qrBase64);
 
-            Thread.sleep(10);
-            log.info("Fake sent email to \"Ваш билет в CinemaPlus! \uD83C\uDF7F\" {}", event.userEmail());
+
         emailService.sendHtmlEmail(
                 event.userEmail(),
                 "Ваш билет в CinemaPlus! 🍿",
