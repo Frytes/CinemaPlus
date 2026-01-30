@@ -6,6 +6,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - SPRING_PROFILES_ACTIVE=${APP_PROFILE:-light}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
       - SPRING_DATASOURCE_USERNAME=myuser
       - SPRING_DATASOURCE_PASSWORD=secret
@@ -13,20 +14,19 @@ services:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_MAIL_HOST=mailhog
       - CINEMA_INFRASTRUCTURE_LOKI_URL=http://loki:3100/ready
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
       - CINEMA_INFRASTRUCTURE_PROMETHEUS_URL=http://prometheus:9090/-/healthy
     depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      loki:
-        condition: service_started
-      prometheus:
-        condition: service_started
-      mailhog:
-          condition: service_started
+       postgres:
+         condition: service_healthy
+       redis:
+         condition: service_started
+       loki:
+         condition: service_started
+       prometheus:
+         condition: service_started
+
+
 
     networks:
       - default
@@ -67,6 +67,7 @@ services:
 
   kafka:
     image: 'apache/kafka:3.7.0'
+    profiles: ["full"]
     container_name: cinema_kafka
     ports:
       - '9092:9092'
@@ -91,6 +92,7 @@ services:
 
 
   kafka-ui:
+    profiles: ["full"]
     image: provectuslabs/kafka-ui:latest
     container_name: cinema_kafka_ui
     ports:
@@ -120,6 +122,11 @@ services:
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   grafana:
     image: grafana/grafana:latest
@@ -128,14 +135,18 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     depends_on:
       - prometheus
       - loki
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
 
   mailhog:
     image: mailhog/mailhog:latest
+    profiles: ["full"]
     container_name: cinema_mailhog
     ports:
       - "1025:1025"

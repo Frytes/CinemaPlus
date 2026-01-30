@@ -6,6 +6,7 @@ import com.frytes.cinemaPlus.common.service.QrCodeService;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@Profile("!light")
 @RequiredArgsConstructor
 public class NotificationService {
 

@@ -2,6 +2,7 @@ package com.frytes.cinemaPlus.users.service;
 
 import com.frytes.cinemaPlus.common.exception.ResourceNotFoundException;
 import com.frytes.cinemaPlus.common.exception.UserAlreadyExistsException;
+import com.frytes.cinemaPlus.common.service.MessageBroker;
 import com.frytes.cinemaPlus.users.dto.*;
 import com.frytes.cinemaPlus.users.entity.RefreshToken;
 import com.frytes.cinemaPlus.users.entity.Role;
@@ -10,7 +11,6 @@ import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import com.frytes.cinemaPlus.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +27,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final MessageBroker messageBroker;
 
     public AuthResponse register(RegisterRequest request) {
         String normalizedEmail = request.email().toLowerCase();
@@ -52,7 +52,7 @@ public class AuthService {
                 user.getUsername()
         );
         try {
-            kafkaTemplate.send("user-events-topic", user.getEmail(), event);
+            messageBroker.send("user-events-topic", user.getEmail(), event);
             log.info("Событие регистрации отправлено в Kafka");
         } catch (Exception e) {
             log.error("Ошибка отправки в Kafka, но регистрация прошла успешно", e);

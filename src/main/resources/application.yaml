@@ -88,7 +88,7 @@ management:
 cinema:
   # 1. Глобальные правила (Используются при реальной работе приложения)
   rules:
-    lock-duration-minutes: 1     # Сколько держится бронь в Redis (BookingLockService)
+    lock-duration-minutes: 10     # Сколько держится бронь в Redis (BookingLockService)
     default-ads-minutes: 15       # Дефолт длительности рекламы (SessionService)
     default-cleanup-minutes: 20   # Дефолт длительности уборки (SessionService)
 
