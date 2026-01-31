@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cinema-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cinema-backend
+  template:
+    metadata:
+      labels:
+        app: cinema-backend
+    spec:
+      containers:
+        - name: cinema-backend
+          image: cinema-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/CinemaPlus"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_DATA_REDIS_HOST
+              value: "redis"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-service:9092"
+            - name: SPRING_MAIL_HOST
+              value: "mailhog"
+            - name: SPRING_MAIL_PORT
+              value: "1025"
+            - name: LOKI_URL
+              value: "http://loki:3100/loki/api/v1/push"
+            - name: CINEMA_INFRASTRUCTURE_LOKI_URL
+              value: "http://loki:3100/ready"
+            - name: CINEMA_INFRASTRUCTURE_PROMETHEUS_URL
+              value: "http://prometheus:9090/-/healthy"

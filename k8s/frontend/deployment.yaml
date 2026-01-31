@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cinema-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cinema-frontend
+  template:
+    metadata:
+      labels:
+        app: cinema-frontend
+    spec:
+      containers:
+        - name: cinema-frontend
+          image: cinema-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80

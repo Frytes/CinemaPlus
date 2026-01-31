@@ -25,5 +25,14 @@ public class KafkaConfig {
                 .replicas(1)
                 .build();
     }
+    @Bean
+    public NewTopic seatUpdatesTopic() {
+        return TopicBuilder.name("seat-updates-topic")
+                .partitions(10)
+                .replicas(1)
+                .config("cleanup.policy", "delete")
+                .config("retention.ms", "60000")
+                .build();
+    }
 
 }
