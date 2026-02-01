@@ -30,7 +30,7 @@ jobs:
     runs-on: self-hosted
     needs: tests
 
-    if: success()
+    if: success() && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
