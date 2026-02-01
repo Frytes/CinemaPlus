@@ -5,6 +5,7 @@ import com.frytes.cinemaPlus.booking.event.TicketDetail;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class HtmlTemplateService {
     public String createBookingConfirmation(BookingPaidEvent event, String qrBase64) {
         String seatsFormatted = formatSeats(event.tickets());
         String seatsCount = event.tickets().size() + " " + getSeatWord(event.tickets().size());
+
+        LocalDateTime mskTime = event.eventTime().plusHours(3);
 
         return String.format("""
     <!DOCTYPE html>
@@ -277,7 +280,7 @@ public class HtmlTemplateService {
                                                     border-radius: 12px;
                                                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                                                     border: 2px solid #ff0000;
-                                                    text-align: center;  /* ← Добавьте эту строку */
+                                                    text-align: center;
                                                 ">
                                                     <!-- ВАЖНО: Вставляем Base64 -->
                                                     <img src="data:image/png;base64,%s"
@@ -287,7 +290,7 @@ public class HtmlTemplateService {
                                                          style="
                                                              display: block;
                                                              border-radius: 6px;
-                                                             margin: 0 auto;  /* ← Это центрирует блок внутри родителя */
+                                                             margin: 0 auto;
                                                          "
                                                     />
                                                    \s
@@ -402,7 +405,7 @@ public class HtmlTemplateService {
                                                         font-size: 14px;
                                                     ">
                                                         +7 (999) 123-45-67<br>
-                                                        support@cinemaplus.ru
+                                                        support@cinema-plus.ru
                                                     </div>
                                                 </div>
                                             </td>
@@ -440,12 +443,12 @@ public class HtmlTemplateService {
     </html>
    \s""",
                 escape(event.movieTitle()),
-                event.eventTime().format(DATE_FORMATTER),
-                event.eventTime().format(TIME_FORMATTER),
+                mskTime.format(DATE_FORMATTER),
+                mskTime.format(TIME_FORMATTER),
                 escape(event.hall()),
                 seatsCount,
                 event.amount(),
-                event.eventTime().format(TIME_FORMATTER),
+                mskTime.format(TIME_FORMATTER),
                 seatsFormatted,
                 qrBase64
         );
@@ -499,7 +502,7 @@ public class HtmlTemplateService {
                             "linear-gradient(135deg, #2d2d2d, #1a1a1a)",
                     isVip ? "#ff6b6b" : "#444444",
                     isVip ? "#ffffff" : "#cccccc",
-                    ticket.rowIndex() + 1, // +1 к ряду для людей
+                    ticket.rowIndex() + 1,
                     ticket.seatNumber(),
                     isVip ? "#ff0000" : "#666666",
                     isVip ? "VIP" : "ОБЫЧНЫЙ"
@@ -765,9 +768,6 @@ public class HtmlTemplateService {
                 <div class="footer">
                     <p style="margin: 0 0 10px 0;">
                         <strong style="color:#e50914;">CINEMA<span style="color:#ffffff;">PLUS</span></strong> — современный кинотеатр
-                    </p>
-                    <p style="margin: 0 0 10px 0; font-size: 12px;">
-                        📧 По вопросам и поддержке: support@cinemaplus.demo
                     </p>
                     <p style="margin: 0; font-size: 11px; color: #666;">
                         © 2025 CinemaPlus Demo Project. Это автоматическое сообщение.
