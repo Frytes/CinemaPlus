@@ -9,5 +9,6 @@ public record BookingResponse(
         BigDecimal totalPrice,
         String status,
         List<Long> seatIds,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long expiresInSeconds
 ) {}

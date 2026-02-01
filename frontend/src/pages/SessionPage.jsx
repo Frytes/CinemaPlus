@@ -102,36 +102,30 @@ const SessionPage = () => {
     }, [id, createdOrder]);
 
     // --- 3. ТАЙМЕР ---
-    useEffect(() => {
-        let timer = null;
-        const ORDER_TTL_SECONDS = 60;
+     useEffect(() => {
+            let timer = null;
 
-        if (createdOrder && createdOrder.createdAt) {
-            const createdTime = new Date(createdOrder.createdAt).getTime();
-            const expiryTime = createdTime + (ORDER_TTL_SECONDS * 1000);
+            if (createdOrder && createdOrder.status === 'PENDING') {
 
-            const updateTimer = () => {
-                const now = Date.now();
-                const secondsLeft = Math.floor((expiryTime - now) / 1000);
+                let seconds = createdOrder.expiresInSeconds || 0;
+                setTimeLeft(seconds);
 
-                if (secondsLeft <= 0) {
-                    clearInterval(timer);
-                    setTimeLeft(0);
-                    handleCancelOrder();
-                    showToast("Время бронирования истекло", 'error');
-                } else {
-                    setTimeLeft(secondsLeft);
-                }
+                timer = setInterval(() => {
+                    seconds -= 1;
+                    setTimeLeft(seconds);
+
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        handleCancelOrder();
+                        showToast("Время бронирования истекло", 'error');
+                    }
+                }, 1000);
+            }
+
+            return () => {
+                if (timer) clearInterval(timer);
             };
-
-            updateTimer();
-            timer = setInterval(updateTimer, 1000);
-        }
-
-        return () => {
-            if (timer) clearInterval(timer);
-        };
-    }, [createdOrder]);
+        }, [createdOrder]);
 
     // --- ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ ---
     const effectiveSeatIds = createdOrder ? createdOrder.seatIds : selectedSeatIds;
@@ -416,7 +410,7 @@ const SessionPage = () => {
                         const isVip = seat.type === 'VIP';
                         const isDimmed = createdOrder && !isInMyOrder;
 
-                        // Определяем стиль для VIP мест
+                        //  VIP
                         let seatStyle = {
                             gridRowStart: seat.rowIndex + 1,
                             gridColumnStart: seat.colIndex + 1,
@@ -434,7 +428,7 @@ const SessionPage = () => {
                             opacity: isMyBooking ? 1 : (isDimmed ? 0.3 : (seat.isBooked ? 0.6 : 1)),
                         };
 
-                        // Цвета для разных состояний
+
                         if (isMyBooking) {
                             // Мое забронированное место
                             seatStyle.background = '#e50914';

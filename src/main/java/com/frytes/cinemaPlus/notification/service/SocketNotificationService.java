@@ -5,7 +5,6 @@ import com.frytes.cinemaPlus.content.dto.enums.SocketStatus;
 import com.frytes.cinemaPlus.content.entity.Seat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocketNotificationService {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SeatSyncService seatSyncService;
 
     public void sendSeatUpdate(Long sessionId, Seat seat, SocketStatus status) {
         try {
@@ -25,13 +24,11 @@ public class SocketNotificationService {
                     seat.getSeatNumber(),
                     status
             );
+            seatSyncService.distribute(message);
 
-            String topic = "/topic/session/" + sessionId;
-            messagingTemplate.convertAndSend(topic, message);
-
-            log.debug("📡 Socket sent: Session={} Seat={} Status={}", sessionId, seat.getSeatNumber(), status);
+            log.debug("📡 Init seat update: Session={} Seat={} Status={}", sessionId, seat.getSeatNumber(), status);
         } catch (Exception e) {
-            log.error("❌ Failed to send socket update", e);
+            log.error("❌ Failed to initiate socket update", e);
         }
     }
 }

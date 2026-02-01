@@ -6,11 +6,13 @@ import com.frytes.cinemaPlus.audit.repository.AuditLogRepository;
 import com.frytes.cinemaPlus.booking.event.BookingPaidEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@Profile("!light")
 @RequiredArgsConstructor
 public class AuditService {
 

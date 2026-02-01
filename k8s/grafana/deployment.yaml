@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "admin"
+          volumeMounts:
+            - name: provisioning
+              mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+              subPath: datasources.yaml
+            - name: provisioning
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+            - name: dash-spring-volume
+              mountPath: /var/lib/grafana/dashboards/spring
+            - name: dash-loki-volume
+              mountPath: /var/lib/grafana/dashboards/loki
+      volumes:
+        - name: provisioning
+          configMap:
+            name: grafana-provisioning
+        - name: dash-spring-volume
+          configMap:
+            name: grafana-dashboard-spring
+        - name: dash-loki-volume
+          configMap:
+            name: grafana-dashboard-loki

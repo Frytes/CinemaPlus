@@ -1,0 +1,123 @@
+services:
+  # === APP ===
+  backend:
+    build: .
+    container_name: cinema_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=light
+      -
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_DATA_REDIS_HOST=redis
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+      - CINEMA_INFRASTRUCTURE_LOKI_URL=http://loki:3100/ready
+      - CINEMA_INFRASTRUCTURE_PROMETHEUS_URL=http://prometheus:9090/-/healthy
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+      - SPRING_MAIL_HOST=localhost
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      loki:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    networks:
+      - cinema-net
+
+  frontend:
+    build: ./frontend
+    container_name: cinema_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - cinema-net
+
+  # === DATA ===
+  postgres:
+    image: 'postgres:15-alpine'
+    container_name: cinema_postgres
+    restart: always
+    environment:
+      - 'POSTGRES_DB=CinemaPlus'
+      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_USER=myuser'
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d CinemaPlus" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cinema-net
+
+  redis:
+    image: 'redis:alpine'
+    container_name: cinema_redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - cinema-net
+
+  # === MONITORING STACK ===
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cinema_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - cinema-net
+
+  loki:
+    image: grafana/loki:latest
+    container_name: cinema_loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cinema-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cinema_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    depends_on:
+      - prometheus
+      - loki
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - cinema-net
+
+volumes:
+  postgres_data_prod:
+  grafana_data_prod:
+
+networks:
+  cinema-net:
+    driver: bridge
