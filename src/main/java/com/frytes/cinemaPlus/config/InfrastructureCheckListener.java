@@ -5,6 +5,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.kafka.core.KafkaAdmin;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
+@Profile("!test")
 public class InfrastructureCheckListener implements ApplicationListener<ApplicationReadyEvent> {
 
     private final DataSource dataSource;

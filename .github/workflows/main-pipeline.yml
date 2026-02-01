@@ -1,0 +1,44 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/**" ]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: 🏗️ Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Tests
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package
+
+  deploy:
+    name: 🚀 Deploy to Prod
+    runs-on: self-hosted
+    needs: tests
+
+    if: success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy with Docker Compose
+        run: |
+          echo "✅ Tests passed. Deploying..."
+          docker compose -f compose.prod.yaml down -v 
+          docker compose -f compose.prod.yaml up -d --build --remove-orphans
+          docker image prune -f
