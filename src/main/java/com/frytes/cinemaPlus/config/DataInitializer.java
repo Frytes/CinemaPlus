@@ -269,27 +269,27 @@ public class DataInitializer implements CommandLineRunner {
 
         createMovie("Начало",
                 "Кобб — талантливый вор, лучший из лучших в опасном искусстве извлечения: он крадет ценные секреты из глубин подсознания во время сна.",
-                148, "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", 2010, 8.8, 12, "Фантастика, Боевик");
+                148, "https://images-s.kinorium.com/movie/poster/472809/w1500_52479049.jpg", 2010, 8.8, 12, "Фантастика, Боевик");
 
         createMovie("Интерстеллар",
                 "Наше время на Земле подошло к концу, команда исследователей берет на себя самую важную миссию в истории человечества; путешествуя за пределы нашей галактики.",
-                169, "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", 2014, 8.6, 12, "Фантастика, Приключения");
+                169, "https://ir.ozone.ru/s3/multimedia-1-u/6955807206.jpg", 2014, 8.6, 12, "Фантастика, Приключения");
 
         createMovie("Темный рыцарь",
                 "Бэтмен поднимает ставки в войне с криминалом. С помощью лейтенанта Джима Гордона и прокурора Харви Дента он намерен очистить улицы от преступности.",
-                152, "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg", 2008, 9.0, 16, "Боевик, Криминал");
+                152, "https://avatars.mds.yandex.net/get-mpic/4408567/2a000001919dc17b6bfee339046e8a264aa8/orig", 2008, 9.0, 16, "Боевик, Криминал");
 
         createMovie("Джокер",
                 "Готэм, начало 1980-х годов. Комик Артур Флек живет с больной матерью. Пытаясь нести в мир хорошее, Артур сталкивается с человеческой жестокостью.",
-                122, "https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg", 2019, 8.4, 18, "Криминал, Драма");
+                122, "https://files.vgtimes.ru/posts/2020-05/1589387834_mmjk-01s_a01-01.webp", 2019, 8.4, 18, "Криминал, Драма");
 
         createMovie("Человек-паук: Паутина вселенных",
                 "Майлз Моралес отправляется в приключение по мультивселенной вместе с Гвен Стейси и новой командой Людей-Пауков.",
-                140, "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg", 2023, 8.7, 6, "Мультфильм, Боевик");
+                140, "https://avatars.dzeninfra.ru/get-zen_doc/271828/pub_6731df02a693237a9ffe5607_6731e8ef1c69ef1b2975acec/scale_1200", 2023, 8.7, 6, "Мультфильм, Боевик");
 
         createMovie("Кунг-фу Панда 4",
                 "По, Воин Дракона, призван судьбой... чтобы уже наконец отдохнуть. Точнее, он призван стать Духовным Лидером Долины Мира.",
-                94, "https://image.tmdb.org/t/p/w500/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg", 2024, 7.1, 0, "Мультфильм, Комедия");
+                94, "https://images-s.kinorium.com/movie/fanart/9805987/w1500_52652825.jpg", 2024, 7.1, 0, "Мультфильм, Комедия");
 
         createMovie("Гадкий я 4",
                 "Грю, Люси и их девочки приветствуют нового члена семьи, Грю-младшего, который намерен мучить своего отца.",
@@ -297,7 +297,7 @@ public class DataInitializer implements CommandLineRunner {
 
         createMovie("Головоломка 2",
                 "Головоломка 2 возвращается в сознание новоиспеченного подростка Райли как раз в тот момент, когда штаб-квартира подвергается сносу.",
-                96, "https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg", 2024, 7.7, 6, "Мультфильм, Семейный");
+                96, "https://avatars.mds.yandex.net/i?id=68f98c9ceeddfe6fcc52b29b40070975_l-4351135-images-thumbs&n=13", 2024, 7.7, 6, "Мультфильм, Семейный");
     }
 
     private void createMovie(String title, String desc, int duration, String poster, int year, double rating, int age, String genre) {

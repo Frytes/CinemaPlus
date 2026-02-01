@@ -9,7 +9,6 @@ services:
     environment:
       - JAVA_OPTS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=light
-      -
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
       - SPRING_DATASOURCE_USERNAME=myuser
       - SPRING_DATASOURCE_PASSWORD=secret
