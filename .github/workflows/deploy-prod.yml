@@ -1,12 +1,16 @@
 name: Deploy to Monoblock
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_run:
+    workflows: ["Java CI with Maven"]
+    branches: [main]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: self-hosted
 
     steps:
@@ -15,8 +19,6 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
-          echo "🚀 Starting deployment on Monoblock..."
           docker compose -f compose.prod.yaml down -v 
           docker compose -f compose.prod.yaml up -d --build --remove-orphans
           docker image prune -f
-          echo "✅ Deployment successful!"
