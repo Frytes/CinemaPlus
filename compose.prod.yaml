@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # === APP ===
   backend:
@@ -35,9 +37,28 @@ services:
     container_name: cinema_frontend
     restart: always
     ports:
-      - "80:80"
+      # Порт берется из переменной APP_PORT (в .env)
+      - "${APP_PORT}:80"
     depends_on:
       - backend
+    networks:
+      - cinema-net
+
+  # === DDNS UPDATER  ===
+  ddns-updater:
+    image: alpine:latest
+    container_name: cinema_ddns
+    restart: always
+    environment:
+      - ALVIY_TOKEN=${DDNS_TOKEN}
+      - HOSTNAME=cinema-plus.ru
+    command: >
+      /bin/sh -c "while true; do
+        echo 'Updating DDNS IP...' &&
+        wget -q -O - \"https://dynupdate.alviy.com/token/update?hostname=$${HOSTNAME}&token=$${ALVIY_TOKEN}&myip=\" &&
+        echo ' Done.' &&
+        sleep 600;
+      done"
     networks:
       - cinema-net
 
