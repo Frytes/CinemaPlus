@@ -10,7 +10,7 @@
 
 **CinemaPlus** — это Enterprise-ready система бронирования билетов, построенная по архитектуре **Modular Monolith**. Проект имитирует работу реального высоконагруженного сервиса с акцентом на надежность транзакций, масштабируемость и наблюдаемость (Observability).
 
-🔗 ** Real-Live Demo:** [https://cinema-plus.ru]
+🔗 **Live Demo:** [cinema-plus.ru](https://cinema-plus.ru)
 
 ![Краткое демо](docs/gif/demo.gif)
 ---
@@ -147,7 +147,7 @@ graph TB
 ## 🚀 Запуск проекта
 
 ### Локально (Docker Compose)
-Самый простой способ поднять всё окружение (БД, Кафка, Бэкенд, Фронт, Мониторинг):
+Самый простой способ поднять всё окружение (БД, Кафка, Бэкенд, Фронт, Мониторинг)
 
 # 1. Сборка и запуск
 ```bash
@@ -156,11 +156,15 @@ cd CinemaPlus
 APP_PROFILE=default docker compose --profile full up -d --build
 ```
 
+Приложение предустанавливает демо-данные при запуске.(Фильмы, сеансы, админ пользователь)
+
+Доступ в админку: admin | admin
+
 # 2. Доступ к сервисам:
 
-# Frontend: http://localhost:80  (admin/admin)
-# Grafana: http://localhost:3000 (admin/admin)
-# MailHog: http://localhost:8025 
+* Frontend: # http://localhost:80
+* Grafana: # http://localhost:3000 (admin/admin)
+* MailHog: #http://localhost:8025
 
 
 ## ‍💻 Автор
