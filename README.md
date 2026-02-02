@@ -10,7 +10,7 @@
 
 **CinemaPlus** — это Enterprise-ready система бронирования билетов, построенная по архитектуре **Modular Monolith**. Проект имитирует работу реального высоконагруженного сервиса с акцентом на надежность транзакций, масштабируемость и наблюдаемость (Observability).
 
-🔗 **Live Demo:** [cinema-plus.ru](https://cinema-plus.ru)
+🔗 **Live Demo:** [cinema-plus.ru](http://cinema-plus.ru)
 
 ![Краткое демо](docs/gif/demo.gif)
 ---
