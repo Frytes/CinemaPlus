@@ -10,10 +10,10 @@
 
 **CinemaPlus** — это Enterprise-ready система бронирования билетов, построенная по архитектуре **Modular Monolith**. Проект имитирует работу реального высоконагруженного сервиса с акцентом на надежность транзакций, масштабируемость и наблюдаемость (Observability).
 
-🔗 **Live Demo:** [https://cinema-plus.ru]
-![Краткое демо](docs/gif/gif.gif)
+🔗 ** Real-Live Demo:** [https://cinema-plus.ru]
+
+![Краткое демо](docs/gif/demo.gif)
 ---
-[![Видео-демо CinemaPlus](docs/screenshots/MainPage.png)](https://dzen.ru/video/watch/697fdba971f0967fd909b119)
 
 **▶️ [Смотреть полное видео на Dzen](https://dzen.ru/video/watch/697fdba971f0967fd909b119)**  
 *Показаны: бронирование, админ-панель, WebSocket-синхронизация, Grafana*
@@ -43,116 +43,61 @@
 ### 4. Динамическое ценообразование (Strategy Pattern)
 Система скидок реализована через паттерн **Strategy**, что позволяет включать/выключать бизнес-правила (скидка на утренние сеансы, наценка за VIP) **без перезагрузки приложения** и изменения кода, просто меняя флаги в БД через админку.
 
+## 🏗️ Архитектура системы
+
 ```mermaid
 graph TB
-    %% ========== КЛИЕНТЫ ==========
-    CLIENT_USER["🎫 **Пользователь**<br/>Бронирование билетов"] 
-    CLIENT_ADMIN["👔 **Администратор**<br/>Управление контентом"]
+    %% Клиенты
+    U["🎫 Пользователь"] --> FE["⚛️ React Frontend"]
+    A["👔 Администратор"] --> AP["📊 Admin Panel"]
     
-    %% ========== ФРОНТЕНД ==========
-    FRONTEND["⚛️ **React Frontend**<br/>Vite + WebSocket"]
-    ADMIN_PANEL["📊 **React Admin Panel**<br/>Dashboard + Analytics"]
+    %% Бэкенд
+    FE --> SB["🟢 Spring Boot API"]
+    AP --> SB
     
-    %% ========== БЭКЕНД ==========
-    subgraph "**Spring Boot 3.2 (Modular Monolith)**"
-        API_GATEWAY["🚪 **API Gateway**<br/>REST + WebSocket"]
-        
-        MODULE_BOOKING["🎫 **Booking Module**<br/>- Бронирование<br/>- Платежи<br/>- Outbox Pattern"]
-        MODULE_CONTENT["🎬 **Content Module**<br/>- Фильмы/Залы<br/>- Сеансы"]
-        MODULE_USERS["👥 **Users Module**<br/>- JWT Auth<br/>- Refresh Tokens"]
-        MODULE_NOTIFY["🔔 **Notification Module**<br/>- Email (QR)<br/>- WebSocket"]
-        MODULE_SIMULATE["⚡ **Simulation Module**<br/>- Нагрузочное тестирование"]
+    subgraph "Модули"
+        B["🎫 Booking"]
+        C["🎬 Content"]
+        N["🔔 Notification"]
+        S["⚡ Simulation"]
     end
     
-    %% ========== ХРАНИЛИЩА ==========
-    DB_MAIN[("**PostgreSQL**<br/>Основная БД + Liquibase")]
-    DB_CACHE[("**Redis**<br/>Кэш + Pessimistic Locking")]
-    DB_OUTBOX["**Outbox Table**<br/>Transactional Pattern"]
+    SB --> B
+    SB --> C
+    SB --> N
+    S --> B
+    S --> C
     
-    %% ========== МЕССЕНДЖИНГ ==========
-    MQ_KAFKA["⚫ **Apache Kafka**<br/>Event Streaming (KRaft)"]
-    MQ_CONSUMER_EMAIL["📧 **Email Consumer**<br/>HTML Templates + QR"]
-    MQ_CONSUMER_WS["🔄 **WebSocket Sync**<br/>Межсерверная синхронизация"]
+    %% Данные
+    B --> PG[("📊 PostgreSQL")]
+    C --> PG
+    B --> RD[("🔴 Redis")]
     
-    %% ========== МОНИТОРИНГ ==========
-    MON_PROMETHEUS["📈 **Prometheus**<br/>Spring Actuator Metrics"]
-    MON_LOKI["📝 **Loki**<br/>Centralized Logging"]
-    MON_GRAFANA["📊 **Grafana**<br/>Real-time Dashboards"]
-    MON_HEALTH["❤️ **Health Checks**<br/>K8s Readiness/Liveness"]
+    %% События
+    B --> OT["Outbox"]
+    OT --> KF["⚫ Kafka"]
+    KF --> EM["📧 Email"]
+    KF --> WS["🔄 WebSocket Sync"]
+    WS --> FE
     
-    %% ========== ДЕПЛОЙ ==========
-    DEPLOY_K8S["☸️ **Kubernetes**<br/>Deployments + Services"]
-    DEPLOY_CI["🔄 **GitHub Actions**<br/>CI/CD Pipeline"]
+    %% Мониторинг
+    SB --> PM["📈 Prometheus"]
+    PM --> GF["📊 Grafana"]
     
-    %% ========== СВЯЗИ ==========
-    CLIENT_USER --> FRONTEND
-    CLIENT_ADMIN --> ADMIN_PANEL
-    
-    FRONTEND --> API_GATEWAY
-    ADMIN_PANEL --> API_GATEWAY
-    
-    API_GATEWAY --> MODULE_BOOKING
-    API_GATEWAY --> MODULE_CONTENT
-    API_GATEWAY --> MODULE_USERS
-    API_GATEWAY --> MODULE_NOTIFY
-    
-    MODULE_BOOKING --> DB_MAIN
-    MODULE_CONTENT --> DB_MAIN
-    MODULE_USERS --> DB_MAIN
-    
-    MODULE_BOOKING --> DB_CACHE
-    MODULE_CONTENT --> DB_CACHE
-    
-    MODULE_BOOKING --> DB_OUTBOX
-    DB_OUTBOX --> MQ_KAFKA
-    
-    MQ_KAFKA --> MQ_CONSUMER_EMAIL
-    MQ_KAFKA --> MQ_CONSUMER_WS
-    MQ_CONSUMER_WS --> FRONTEND
-    
-    MODULE_BOOKING --> MON_PROMETHEUS
-    MODULE_CONTENT --> MON_PROMETHEUS
-    API_GATEWAY --> MON_PROMETHEUS
-    
-    MON_PROMETHEUS --> MON_GRAFANA
-    MON_LOKI --> MON_GRAFANA
-    
-    MODULE_SIMULATE --> MODULE_BOOKING
-    MODULE_SIMULATE --> MODULE_CONTENT
-    
-    DEPLOY_K8S --> MODULE_BOOKING
-    DEPLOY_K8S --> MODULE_CONTENT
-    DEPLOY_CI --> DEPLOY_K8S
-    
-    %% ========== СТИЛИ ==========
-    style CLIENT_USER fill:#f39c12,color:#000
-    style CLIENT_ADMIN fill:#3498db,color:#fff
-    style FRONTEND fill:#61dafb,color:#000
-    style ADMIN_PANEL fill:#9b59b6,color:#fff
-    style API_GATEWAY fill:#2ecc71,color:#fff
-    style MODULE_BOOKING fill:#e74c3c,color:#fff
-    style MODULE_CONTENT fill:#e50914,color:#fff
-    style MODULE_USERS fill:#1abc9c,color:#000
-    style MODULE_NOTIFY fill:#f1c40f,color:#000
-    style MODULE_SIMULATE fill:#e67e22,color:#fff
-    style DB_MAIN fill:#336791,color:#fff
-    style DB_CACHE fill:#c0392b,color:#fff
-    style DB_OUTBOX fill:#16a085,color:#fff
-    style MQ_KAFKA fill:#000,color:#fff
-    style MQ_CONSUMER_EMAIL fill:#8e44ad,color:#fff
-    style MQ_CONSUMER_WS fill:#27ae60,color:#fff
-    style MON_PROMETHEUS fill:#e74c3c,color:#fff
-    style MON_LOKI fill:#00b894,color:#fff
-    style MON_GRAFANA fill:#f46800,color:#fff
-    style MON_HEALTH fill:#e84393,color:#fff
-    style DEPLOY_K8S fill:#326ce5,color:#fff
-    style DEPLOY_CI fill:#6e5494,color:#fff
-    
-    linkStyle 0 stroke:#f39c12,stroke-width:2px
-    linkStyle 1 stroke:#3498db,stroke-width:2px
-    linkStyle 2 stroke:#61dafb,stroke-width:2px
-    linkStyle 3 stroke:#9b59b6,stroke-width:2px
-    linkStyle 16 stroke:#e50914,stroke-width:3px,stroke-dasharray:5,5
+    %% Стили
+    style U fill:#f39c12,color:#000
+    style A fill:#3498db,color:#fff
+    style FE fill:#61dafb,color:#000
+    style AP fill:#9b59b6,color:#fff
+    style SB fill:#2ecc71,color:#fff
+    style B fill:#e50914,color:#fff
+    style C fill:#3498db,color:#fff
+    style N fill:#f1c40f,color:#000
+    style S fill:#e67e22,color:#fff
+    style PG fill:#336791,color:#fff
+    style RD fill:#c0392b,color:#fff
+    style KF fill:#000,color:#fff
+    style GF fill:#f46800,color:#fff
 ```
 ---
 
