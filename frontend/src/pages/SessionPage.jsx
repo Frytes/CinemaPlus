@@ -21,6 +21,7 @@ const SessionPage = () => {
     const [tooltip, setTooltip] = useState(null);
     const location = useLocation();
 
+
     const showToast = (message, type = 'error') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 2000);
@@ -58,7 +59,8 @@ const SessionPage = () => {
             // Игнорируем
         }
     }, [id]);
-
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
     // Инициализация
     useEffect(() => {
         fetchSeats();
@@ -68,7 +70,7 @@ const SessionPage = () => {
     // --- 2. WEBSOCKET ---
     useEffect(() => {
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws',
+            brokerURL: `${protocol}//${host}/ws`,
             onConnect: () => {
                 client.subscribe(`/topic/session/${id}`, (message) => {
 

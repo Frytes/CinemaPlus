@@ -153,7 +153,7 @@ graph TB
 ```bash
 git clone https://github.com/Frytes/CinemaPlus
 cd CinemaPlus
-APP_PROFILE=default docker compose --profile full up -d --build
+APP_PROFILE=dev docker compose --profile full up -d --build
 ```
 
 Приложение предустанавливает демо-данные при запуске.(Фильмы, сеансы, админ пользователь)

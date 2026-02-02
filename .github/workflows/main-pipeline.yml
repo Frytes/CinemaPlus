@@ -25,20 +25,47 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+          retention-days: 1
+
   deploy:
     name: 🚀 Deploy to Prod
     runs-on: self-hosted
     needs: tests
-
     if: success() && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+
       - name: Deploy with Docker Compose
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          APP_PROFILE: light
         run: |
-          echo "✅ Tests passed. Deploying..."
+          echo "✅ Tests passed in Cloud. Deploying on VPS..."
+          
+          # Создаем .env файл
+          echo "POSTGRES_DB=$POSTGRES_DB" > .env
+          echo "POSTGRES_USER=$POSTGRES_USER" >> .env
+          echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "SPRING_PROFILES_ACTIVE=$APP_PROFILE" >> .env
+          
           docker compose -f compose.prod.yaml down -v 
           docker compose -f compose.prod.yaml up -d --build --remove-orphans
           docker image prune -f
