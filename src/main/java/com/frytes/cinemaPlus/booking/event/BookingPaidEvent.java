@@ -10,6 +10,7 @@ public record BookingPaidEvent(
         String userEmail,
         String movieTitle,
         Long sessionId,
+        LocalDateTime sessionStartTime,
         String hall,
         List<TicketDetail> tickets,
         BigDecimal amount,
