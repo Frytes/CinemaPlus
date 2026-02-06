@@ -57,7 +57,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     void forceUpdateCreatedAt(Long id, LocalDateTime date);
 
     //Сумма продаж за период
-    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status = 'PAID' AND o.createdAt >= :start AND o.createdAt <= :end")
+    @Query("SELECT COALESCE(SUM(t.price), 0) FROM Ticket t WHERE t.order.status = 'PAID' AND t.order.createdAt >= :start AND t.order.createdAt <= :end")
     BigDecimal countRevenueBetween(LocalDateTime start, LocalDateTime end);
 
     //Кол-во билетов за период

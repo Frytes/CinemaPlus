@@ -51,8 +51,8 @@ public class NotificationService {
         Map<String, Object> qrData = Map.of(
                 "order_id", event.orderId(),
                 "movie", event.movieTitle(),
-                "date", event.eventTime().format(dateFormatter),
-                "time", event.eventTime().format(timeFormatter),
+                "date", event.sessionStartTime().format(dateFormatter),
+                "time", event.sessionStartTime().format(timeFormatter),
                 "tickets", seatsInfo
         );
 

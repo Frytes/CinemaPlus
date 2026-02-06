@@ -86,12 +86,14 @@ public class PaymentService {
             String movieTitle = "Unknown";
             String hallName = "Unknown Hall";
             Long sessionId = null;
+            LocalDateTime sessionStartTime = null;
 
             if (!order.getTickets().isEmpty()) {
                 Session session = order.getTickets().getFirst().getSession();
                 movieTitle = session.getMovie().getTitle();
                 hallName = session.getHall().getName();
                 sessionId = session.getId();
+                sessionStartTime = session.getStartTime();
             }
 
             List<TicketDetail> ticketDetails = order.getTickets().stream()
@@ -111,6 +113,7 @@ public class PaymentService {
                     order.getUser().getEmail(),
                     movieTitle,
                     sessionId,
+                    sessionStartTime,
                     hallName,
                     ticketDetails,
                     order.getTotalPrice(),

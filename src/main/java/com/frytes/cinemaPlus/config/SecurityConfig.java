@@ -25,6 +25,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
@@ -36,9 +42,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/**", "/api/halls/**", "/api/sessions/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/pricing/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/simulation/*").hasAuthority("ADMIN")
+                        .requestMatchers("/api/simulation/**").hasAuthority("ADMIN")
 
-                        .requestMatchers("/api/bookings/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -49,4 +54,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

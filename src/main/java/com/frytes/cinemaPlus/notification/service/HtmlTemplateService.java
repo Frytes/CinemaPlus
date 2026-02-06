@@ -5,7 +5,6 @@ import com.frytes.cinemaPlus.booking.event.TicketDetail;
 import com.frytes.cinemaPlus.users.event.UserRegisteredEvent;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -14,12 +13,16 @@ public class HtmlTemplateService {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter FULL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public String createBookingConfirmation(BookingPaidEvent event, String qrBase64) {
         String seatsFormatted = formatSeats(event.tickets());
         String seatsCount = event.tickets().size() + " " + getSeatWord(event.tickets().size());
 
-        LocalDateTime mskTime = event.eventTime().plusHours(3);
+
+        String formattedSessionDate = event.sessionStartTime().format(DATE_FORMATTER);
+        String formattedSessionTime = event.sessionStartTime().format(TIME_FORMATTER);
+        String formattedPaymentTime = event.eventTime().format(FULL_DATE_TIME_FORMATTER);
 
         return String.format("""
     <!DOCTYPE html>
@@ -36,7 +39,6 @@ public class HtmlTemplateService {
         color: #ffffff;
         min-height: 100vh;
     ">
-       \s
         <table width="100%%" cellpadding="0" cellspacing="0" align="center">
             <tr>
                 <td align="center" style="padding: 30px 20px;">
@@ -74,7 +76,6 @@ public class HtmlTemplateService {
                                         🎬 ВАШ ЗАКАЗ ГОТОВ
                                     </span>
                                 </div>
-                               \s
                                 <p style="
                                     color:#b0b0b0;\s
                                     margin:0;
@@ -88,7 +89,7 @@ public class HtmlTemplateService {
                         </tr>
                     </table>
                    \s
-                    <!-- Horizontal Ticket Container -->
+                    <!-- Ticket Container -->
                     <table width="100%%" cellpadding="0" cellspacing="0"\s
                            style="
                                max-width: 680px;
@@ -98,23 +99,17 @@ public class HtmlTemplateService {
                                border: 2px solid rgba(255, 0, 0, 0.3);
                                overflow: hidden;
                            ">
-                       \s
-                        <!-- Красная полоса слева -->
                         <tr>
                             <td style="
                                 width: 8px;
                                 background: linear-gradient(to bottom, #ff0000, #d00000, #9d0208);
                             "></td>
-                           \s
-                            <!-- Основное содержимое -->
                             <td style="padding: 30px 25px;">
-                               \s
                                 <table width="100%%" cellpadding="0" cellspacing="0">
                                     <tr>
-                                        <!-- Левая часть - информация -->
                                         <td style="padding-right: 25px; vertical-align: top;">
                                            \s
-                                            <!-- Название фильма -->
+                                            <!-- Фильм и время сеанса -->
                                             <div style="margin-bottom: 25px;">
                                                 <h2 style="
                                                     color: #ffffff;
@@ -125,7 +120,6 @@ public class HtmlTemplateService {
                                                 ">
                                                     🎥 %s
                                                 </h2>
-                                               \s
                                                 <div style="
                                                     display: inline-block;
                                                     background: rgba(255, 0, 0, 0.1);
@@ -145,7 +139,7 @@ public class HtmlTemplateService {
                                                 </div>
                                             </div>
                                            \s
-                                            <!-- Информационные блоки в ряд -->
+                                            <!-- Инфо блоки -->
                                             <table width="100%%" cellpadding="0" cellspacing="0"\s
                                                    style="margin-bottom: 20px;">
                                                 <tr>
@@ -176,7 +170,6 @@ public class HtmlTemplateService {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                   \s
                                                     <td style="padding: 0; vertical-align: top;">
                                                         <div style="
                                                             background: rgba(40, 40, 40, 0.8);
@@ -236,7 +229,7 @@ public class HtmlTemplateService {
                                                 </div>
                                             </div>
                                            \s
-                                            <!-- Дополнительная информация -->
+                                            <!-- Инструкция -->
                                             <div style="
                                                 background: rgba(20, 20, 20, 0.9);
                                                 padding: 15px;
@@ -263,69 +256,61 @@ public class HtmlTemplateService {
                                                     <li>Сохраняйте этот билет до конца сеанса</li>
                                                 </ul>
                                             </div>
-                                           \s
                                         </td>
                                        \s
-                                        <!-- Правая часть - QR код -->
-                                            <td style="
-                                                width: 180px;
-                                                vertical-align: middle;
-                                                border-left: 2px dashed rgba(255, 0, 0, 0.3);
-                                                padding-left: 20px;
+                                        <!-- QR код -->
+                                        <td style="
+                                            width: 180px;
+                                            vertical-align: middle;
+                                            border-left: 2px dashed rgba(255, 0, 0, 0.3);
+                                            padding-left: 20px;
+                                        ">
+                                            <div style="
+                                                background: #ffffff;
+                                                padding: 15px;
+                                                border-radius: 12px;
+                                                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                                                border: 2px solid #ff0000;
+                                                text-align: center;
                                             ">
-                                               \s
+                                                <img src="data:image/png;base64,%s"
+                                                     width="140"
+                                                     height="140"
+                                                     alt="QR-код билета"
+                                                     style="
+                                                         display: block;
+                                                         border-radius: 6px;
+                                                         margin: 0 auto;
+                                                     "
+                                                />
                                                 <div style="
-                                                    background: #ffffff;
-                                                    padding: 15px;
-                                                    border-radius: 12px;
-                                                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-                                                    border: 2px solid #ff0000;
-                                                    text-align: center;
+                                                    margin-top: 15px;
+                                                    padding: 10px;
+                                                    background: linear-gradient(90deg, #ff0000, #d00000, #9d0208);
+                                                    border-radius: 8px;
                                                 ">
-                                                    <!-- ВАЖНО: Вставляем Base64 -->
-                                                    <img src="data:image/png;base64,%s"
-                                                         width="140"
-                                                         height="140"
-                                                         alt="QR-код билета"
-                                                         style="
-                                                             display: block;
-                                                             border-radius: 6px;
-                                                             margin: 0 auto;
-                                                         "
-                                                    />
-                                                   \s
-                                                    <div style="
-                                                        margin-top: 15px;
-                                                        padding: 10px;
-                                                        background: linear-gradient(90deg, #ff0000, #d00000, #9d0208);
-                                                        border-radius: 8px;
+                                                    <p style="
+                                                        color: #ffffff;
+                                                        font-size: 13px;
+                                                        margin: 0;
+                                                        font-weight: 700;
                                                     ">
-                                                        <p style="
-                                                            color: #ffffff;
-                                                            font-size: 13px;
-                                                            margin: 0;
-                                                            font-weight: 700;
-                                                        ">
-                                                            📱 ОТСКАНИРУЙТЕ
-                                                        </p>
-                                                        <p style="
-                                                            color: rgba(255, 255, 255, 0.9);
-                                                            font-size: 10px;
-                                                            margin: 3px 0 0 0;
-                                                        ">
-                                                            на входе в кинотеатр
-                                                        </p>
-                                                    </div>
+                                                        📱 ОТСКАНИРУЙТЕ
+                                                    </p>
+                                                    <p style="
+                                                        color: rgba(255, 255, 255, 0.9);
+                                                        font-size: 10px;
+                                                        margin: 3px 0 0 0;
+                                                    ">
+                                                        на входе в кинотеатр
+                                                    </p>
                                                 </div>
-                                               \s
-                                            </td>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </table>
-                               \s
                             </td>
                         </tr>
-                       \s
-                        <!-- Нижняя красная полоса -->
                         <tr>
                             <td colspan="2">
                                 <div style="
@@ -341,7 +326,6 @@ public class HtmlTemplateService {
                                 "></div>
                             </td>
                         </tr>
-                       \s
                     </table>
                    \s
                     <!-- Footer -->
@@ -411,7 +395,6 @@ public class HtmlTemplateService {
                                             </td>
                                         </tr>
                                     </table>
-                                   \s
                                     <div style="
                                         height: 1px;
                                         background: linear-gradient(90deg,\s
@@ -421,7 +404,6 @@ public class HtmlTemplateService {
                                         );
                                         margin: 25px 0;
                                     "></div>
-                                   \s
                                     <p style="
                                         margin:0;
                                         color:#888888;
@@ -434,21 +416,19 @@ public class HtmlTemplateService {
                             </td>
                         </tr>
                     </table>
-                   \s
                 </td>
             </tr>
         </table>
-       \s
     </body>
     </html>
    \s""",
                 escape(event.movieTitle()),
-                mskTime.format(DATE_FORMATTER),
-                mskTime.format(TIME_FORMATTER),
+                formattedSessionDate,
+                formattedSessionTime,
                 escape(event.hall()),
                 seatsCount,
                 event.amount(),
-                mskTime.format(TIME_FORMATTER),
+                formattedPaymentTime,
                 seatsFormatted,
                 qrBase64
         );
@@ -462,7 +442,7 @@ public class HtmlTemplateService {
         StringBuilder seatsHtml = new StringBuilder();
 
         for (TicketDetail ticket : tickets) {
-            boolean isVip = ticket.type().toString().equalsIgnoreCase("VIP");
+            boolean isVip = ticket.type() != null && ticket.type().toString().equalsIgnoreCase("VIP");
 
             String seatHtml = String.format("""
             <div style="
@@ -781,6 +761,7 @@ public class HtmlTemplateService {
                 escape(event.email())
         );
     }
+
     private String escape(String text) {
         if (text == null) return "";
         return text
@@ -790,5 +771,4 @@ public class HtmlTemplateService {
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
-
 }

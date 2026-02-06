@@ -58,7 +58,6 @@ spring:
 logging:
   level:
     root: INFO
-#    org.springframework.security: DEBUG
     org.apache.kafka: WARN
     org.apache.zookeeper: WARN
     org.hibernate.SQL: INFO
