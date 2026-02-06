@@ -7,7 +7,7 @@ on:
 
 jobs:
   tests:
-    name: 🏗️ Test & Build
+    name: Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -25,47 +25,48 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-jar
-          path: target/*.jar
-          retention-days: 1
-
   deploy:
-    name: 🚀 Deploy to Prod
+    name: Deploy to Prod
     runs-on: self-hosted
     needs: tests
-    if: success() && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-jar
-          path: target/
-
-      - name: Deploy with Docker Compose
+      - name: Deploy application
         env:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          APP_PROFILE: light
         run: |
-          echo "✅ Tests passed in Cloud. Deploying on VPS..."
+          TARGET_DIR=~/CinemaPlus
+          mkdir -p $TARGET_DIR
+
+          cp Dockerfile $TARGET_DIR/
+          cp pom.xml $TARGET_DIR/
           
-          # Создаем .env файл
-          echo "POSTGRES_DB=$POSTGRES_DB" > .env
-          echo "POSTGRES_USER=$POSTGRES_USER" >> .env
-          echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
-          echo "JWT_SECRET=$JWT_SECRET" >> .env
-          echo "SPRING_PROFILES_ACTIVE=$APP_PROFILE" >> .env
+          rm -rf $TARGET_DIR/src
+          cp -r src $TARGET_DIR/
           
-          docker compose -f compose.prod.yaml down -v 
+          cp compose.prod.yaml $TARGET_DIR/
+          cp nginx.conf $TARGET_DIR/
+          
+          rm -rf $TARGET_DIR/frontend
+          cp -r frontend $TARGET_DIR/
+          
+          cd $TARGET_DIR
+          
+          cat <<EOF > .env
+          POSTGRES_DB=$POSTGRES_DB
+          POSTGRES_USER=$POSTGRES_USER
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          JWT_SECRET=$JWT_SECRET
+          APP_PROFILE=light
+          EOF
+          
+          docker compose -f compose.prod.yaml down
           docker compose -f compose.prod.yaml up -d --build --remove-orphans
           docker image prune -f

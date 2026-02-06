@@ -7,10 +7,10 @@ services:
       - "8080:8080"
     environment:
       - TZ=Europe/Moscow
-      - SPRING_PROFILES_ACTIVE=${APP_PROFILE:-light}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
-      - SPRING_DATASOURCE_USERNAME=myuser
-      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_MAIL_HOST=mailhog
@@ -44,15 +44,15 @@ services:
     image: 'postgres:15-alpine'
     container_name: cinema_postgres
     environment:
-      - 'POSTGRES_DB=CinemaPlus'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U myuser -d CinemaPlus" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
