@@ -188,7 +188,7 @@ APP_PROFILE=dev docker compose --profile full up -d --build
 
 Доступ в админку: admin | admin
 
-# 2. Доступ к сервисам:
+# 2. Порты инфрастуктуры при локальном запуске:
 
 * Frontend: # http://localhost:80
 * Grafana: # http://localhost:3000 (admin/admin)
