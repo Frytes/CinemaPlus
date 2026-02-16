@@ -13,22 +13,26 @@ spec:
         app: postgres
     spec:
       securityContext:
-        fsGroup: 10001
-        runAsGroup: 10001
-        runAsUser: 10001
+        fsGroup: 999
       containers:
         - name: postgres
           image: postgres:15-alpine
           ports:
             - containerPort: 5432
-          envFrom:
-            - configMapRef:
-                name: postgres-config
-            - secretRef:
-                name: postgres-secret
+          env:
+            - name: POSTGRES_DB
+              value: "CinemaPlus"
+            - name: POSTGRES_USER
+              value: "myuser"
+            - name: POSTGRES_PASSWORD
+              value: "secret"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-storage
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          securityContext:
+            runAsUser: 999
       volumes:
-        - name: postgres-storage
+        - name: data
           emptyDir: {}

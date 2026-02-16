@@ -28,6 +28,7 @@ services:
     container_name: cinema_backend
     restart: always
     environment:
+      - TZ=Europe/Moscow
       - SPRING_PROFILES_ACTIVE=light
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/CinemaPlus
       - SPRING_DATASOURCE_USERNAME=myuser
@@ -52,6 +53,7 @@ services:
     container_name: cinema_postgres
     restart: always
     environment:
+        TZ: Europe/Moscow
         POSTGRES_DB: "CinemaPlus"
         POSTGRES_USER: "myuser"
         POSTGRES_PASSWORD: "secret"

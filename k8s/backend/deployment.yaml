@@ -12,6 +12,10 @@ spec:
       labels:
         app: cinema-backend
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done']
       containers:
         - name: cinema-backend
           image: cinema-backend:latest
@@ -24,15 +28,9 @@ spec:
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/CinemaPlus"
             - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: postgres-config
-                  key: POSTGRES_USER
+              value: "myuser"
             - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_PASSWORD
+              value: "secret"
             - name: SPRING_DATA_REDIS_HOST
               value: "redis"
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
