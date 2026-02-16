@@ -24,8 +24,7 @@ class TestcontainersConfiguration {
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer<?> postgresContainer() {
-		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-				.withCreateContainerCmdModifier(cmd -> cmd.getHostConfig().withMemory(512 * 1024 * 1024L));
+		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
 	}
 
 	@Bean
