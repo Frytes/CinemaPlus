@@ -15,14 +15,17 @@ class TestcontainersConfiguration {
 	@ServiceConnection
 	KafkaContainer kafkaContainer() {
 		return new KafkaContainer(
-				DockerImageName.parse("apache/kafka:3.7.0")
-		);
+				DockerImageName.parse("apache/kafka:3.7.0"))
+				.withEnv("KAFKA_HEAP_OPTS", "-Xmx256m -Xms256m");
+
+
 	}
 
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer<?> postgresContainer() {
-		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
+				.withCreateContainerCmdModifier(cmd -> cmd.getHostConfig().withMemory(512 * 1024 * 1024L));
 	}
 
 	@Bean
